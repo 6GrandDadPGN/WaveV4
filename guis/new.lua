@@ -77,7 +77,6 @@ local getcustomassets = {
 	['vaperewrite/assets/new/colorpreview.png'] = 'rbxassetid://14368311578',
 	['vaperewrite/assets/new/combaticon.png'] = 'rbxassetid://14368312652',
 	['vaperewrite/assets/new/customsettings.png'] = 'rbxassetid://14403726449',
-	['vaperewrite/assets/new/discord.png'] = '',
 	['vaperewrite/assets/new/dots.png'] = 'rbxassetid://14368314459',
 	['vaperewrite/assets/new/edit.png'] = 'rbxassetid://14368315443',
 	['vaperewrite/assets/new/expandicon.png'] = 'rbxassetid://14368353032',
@@ -2521,13 +2520,6 @@ function mainapi:CreateGUI()
 	settingsicon.Image = getcustomasset('vaperewrite/assets/new/guisettings.png')
 	settingsicon.ImageColor3 = color.Light(uipallet.Main, 0.37)
 	settingsicon.Parent = settingsbutton
-	local discordbutton = Instance.new('ImageButton')
-	discordbutton.Size = UDim2.fromOffset(16, 16)
-	discordbutton.Position = UDim2.new(1, -56, 0, 11)
-	discordbutton.BackgroundTransparency = 1
-	discordbutton.Image = getcustomasset('vaperewrite/assets/new/discord.png')
-	discordbutton.Parent = window
-	addTooltip(discordbutton, 'Join discord')
 	local settingspane = Instance.new('TextButton')
 	settingspane.Size = UDim2.fromScale(1, 1)
 	settingspane.BackgroundColor3 = color.Dark(uipallet.Main, 0.02)
@@ -3563,37 +3555,6 @@ function mainapi:CreateGUI()
 	end)
 	close.MouseButton1Click:Connect(function()
 		settingspane.Visible = false
-	end)
-	discordbutton.MouseButton1Click:Connect(function()
-		task.spawn(function()
-			local body = httpService:JSONEncode({
-				nonce = httpService:GenerateGUID(false),
-				args = {
-					invite = {code = '5gJqhQmrdS'},
-					code = '5gJqhQmrdS'
-				},
-				cmd = 'INVITE_BROWSER'
-			})
-
-			for i = 1, 14 do
-				task.spawn(function()
-					request({
-						Method = 'POST',
-						Url = 'http://127.0.0.1:64'..(53 + i)..'/rpc?v=1',
-						Headers = {
-							['Content-Type'] = 'application/json',
-							Origin = 'https://discord.com'
-						},
-						Body = body
-					})
-				end)
-			end
-		end)
-
-		task.spawn(function()
-			tooltip.Text = 'Copied!'
-			setclipboard('https://discord.gg/5gJqhQmrdS')
-		end)
 	end)
 	settingsbutton.MouseEnter:Connect(function()
 		settingsicon.ImageColor3 = uipallet.Text
@@ -5673,7 +5634,7 @@ local scarcitybanner = Instance.new('TextLabel')
 scarcitybanner.Size = UDim2.fromScale(1, 0.02)
 scarcitybanner.Position = UDim2.fromScale(0, 0.97)
 scarcitybanner.BackgroundTransparency = 1
-scarcitybanner.Text = 'A new discord has been created, click the discord icon to join.'
+scarcitybanner.Text = 'No discord server yet.'
 scarcitybanner.TextScaled = true
 scarcitybanner.TextColor3 = Color3.new(1, 1, 1)
 scarcitybanner.TextStrokeTransparency = 0.5
