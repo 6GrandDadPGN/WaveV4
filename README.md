@@ -25,9 +25,9 @@ Half of the time its usually the scripting utility at fault, please make sure th
 3. Maintaining the same behavior across all usages of said functions.
 ### User Issues
 If its not the supposed utility at fault, please try some troubleshooting steps.
-1. Deleting the newvape folder (WITH THE GAME CLOSED).
+1. Deleting the vaperewrite folder (WITH THE GAME CLOSED).
 2. Making sure you have connection to [the main loadstring.](https://raw.githubusercontent.com/6GrandDadPGN/WaveV4/refs/heads/main/NewMainScript.lua)
-3. Ensuring no external script is conflicting with vape.
+3. Ensuring no external script is conflicting with wave.
 
 ## Developers & Credits
 [6GrandDad](https://github.com/6GrandDadPGN) - Lead maintainer of the project
