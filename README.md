@@ -1,5 +1,5 @@
 <h2 align="center">
-  A Roblox script built from the ground up for your precise needs!
+  A Roblox script built by the owner 6GrandDadPGN!
   <br/>
   Rise up to the top while remaining completely untouchable.
 </h2>
