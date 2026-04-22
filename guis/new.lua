@@ -1,9 +1,9 @@
 local mainapi = {
 	Categories = {},
 	GUIColor = {
-		Hue = 0.46,
-		Sat = 0.96,
-		Value = 0.52
+		Hue = 0,
+		Sat = 0,
+		Value = 1
 	},
 	HeldKeybinds = {},
 	Keybind = {'RightShift'},
@@ -88,7 +88,7 @@ local getcustomassets = {
 	['vaperewrite/assets/new/guislider.png'] = 'rbxassetid://14368320020',
 	['vaperewrite/assets/new/guisliderrain.png'] = 'rbxassetid://14368321228',
 	['vaperewrite/assets/new/guiv4.png'] = 'rbxassetid://14368322199',
-	['vaperewrite/assets/new/guivape.png'] = 'rbxassetid://14657521312',
+	['vaperewrite/assets/new/guivape.png'] = 'rbxassetid://109472188250623',
 	['vaperewrite/assets/new/info.png'] = 'rbxassetid://14368324807',
 	['vaperewrite/assets/new/inventoryicon.png'] = 'rbxassetid://14928011633',
 	['vaperewrite/assets/new/legit.png'] = 'rbxassetid://14425650534',
@@ -117,7 +117,7 @@ local getcustomassets = {
 	['vaperewrite/assets/new/targetstab.png'] = 'rbxassetid://14497393895',
 	['vaperewrite/assets/new/textguiicon.png'] = 'rbxassetid://14368355456',
 	['vaperewrite/assets/new/textv4.png'] = 'rbxassetid://14368357095',
-	['vaperewrite/assets/new/textvape.png'] = 'rbxassetid://14368358200',
+	['vaperewrite/assets/new/textvape.png'] = 'rbxassetid://109472188250623',
 	['vaperewrite/assets/new/utilityicon.png'] = 'rbxassetid://14368359107',
 	['vaperewrite/assets/new/vape.png'] = 'rbxassetid://14373395239',
 	['vaperewrite/assets/new/warning.png'] = 'rbxassetid://14368361552',
@@ -5796,6 +5796,16 @@ mainapi:CreateCategory({
 	Name = 'Minigames',
 	Icon = getcustomasset('vaperewrite/assets/new/miniicon.png'),
 	Size = UDim2.fromOffset(19, 12)
+})
+mainapi:CreateCategory({
+	Name = 'Legit',
+	Icon = getcustomasset('vaperewrite/assets/new/legittab.png'),
+	Size = UDim2.fromOffset(14, 14)
+})
+mainapi:CreateCategory({
+	Name = 'Kits',
+	Icon = getcustomasset('vaperewrite/assets/new/targetnpc1.png'),
+	Size = UDim2.fromOffset(14, 14)
 })
 mainapi.Categories.Main:CreateDivider('misc')
 
