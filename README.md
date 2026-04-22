@@ -1,8 +1,8 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./README/wavelogo-white.png">
-    <source media="(prefers-color-scheme: light)" srcset="./README/wavelogo-dark.png">
-    <img alt="vape logo" src="./README/meowlogo.png">
+    <source media="(prefers-color-scheme: dark)" srcset="./README/meowlogo-white.png">
+    <source media="(prefers-color-scheme: light)" srcset="./README/meowlogo-dark.png">
+    <img alt="vape logo" src="./README/vapelogo.png">
   </picture>
 </p>
 <h2 align="center">
