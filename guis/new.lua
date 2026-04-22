@@ -5923,7 +5923,7 @@ mainapi.MultiKeybind = general:CreateToggle({
 })
 mainapi.HoldKeyBind = general:CreateToggle({
 	Name = 'Enable Hold-Keybinding',
-	Tooltip = 'Allows keys to be hold to a module',
+	Tooltip = 'Allows keys to be hold to a module (Made By Soryed)',
 	Function = function(v)
 		if v then
 			pcall(function()
