@@ -70,7 +70,7 @@ end
 local function finishLoading()
 	vape.Init = nil
 	if not vape.Load then
-		warn('[Wave] vape.Load is nil skipping load')
+		warn('[Meow] vape.Load is nil skipping load')
 		return
 	end
 	vape:Load()
@@ -101,7 +101,7 @@ local function finishLoading()
 				teleportScript = 'shared.ValidatedUsername = "'..shared.ValidatedUsername..'"\n'..teleportScript
 			end
 			local _ok, _err = pcall(function() vape:Save() end)
-			if not _ok then warn('[Wave] save failed before teleport: ' .. tostring(_err)) end
+			if not _ok then warn('[Meow] save failed before teleport: ' .. tostring(_err)) end
 			queue_on_teleport(teleportScript)
 		end
 	end))
@@ -110,7 +110,7 @@ local function finishLoading()
         if not vape.Categories then return end
         if vape.Categories.Main.Options['GUI bind indicator'].Enabled then
             local name = shared.ValidatedUsername and ('wsg, ' .. shared.ValidatedUsername .. ' :D ') or 'welcome '
-            vape:CreateNotification('[Wave] Finished Loading', name .. (vape.VapeButton and 'Press the button in the top right to open GUI' or 'Press ' .. table.concat(vape.Keybind, ' + '):upper() .. ' to open GUI'), 5)
+            vape:CreateNotification('[Meow] Finished Loading', name .. (vape.VapeButton and 'Press the button in the top right to open GUI' or 'Press ' .. table.concat(vape.Keybind, ' + '):upper() .. ' to open GUI'), 5)
         end
     end
 end
@@ -126,18 +126,18 @@ end
 
 local guiFunc, guiErr = loadstring(downloadFile('vaperewrite/guis/' .. gui .. '.lua'), 'gui')
 if not guiFunc then
-    error('[Wave] Failed to load GUI: ' .. tostring(guiErr))
+    error('[Meow] Failed to load GUI: ' .. tostring(guiErr))
 end
 vape = guiFunc()
 if not vape then
-    error('[Wave] GUI returned nil file may be corrupted try deleting vaperewrite/guis/' .. gui .. '.lua and reinjecting.')
+    error('[Meow] GUI returned nil file may be corrupted try deleting vaperewrite/guis/' .. gui .. '.lua and reinjecting.')
 end
 if not vape.Load then
     if delfile then pcall(function() delfile('vaperewrite/guis/' .. gui .. '.lua') end) end
-    error('[Wave] gui file corrupted (missing load) reinject..')
+    error('[Meow] gui file corrupted (missing load) reinject..')
 end
 if not vape.Init and not vape.Load then
-    error('[Wave] failed to initialize properly reinject to fix this bs')
+    error('[Meow] failed to initialize properly reinject to fix this bs')
 end
 shared.vape = vape
 task.wait(0.1)
