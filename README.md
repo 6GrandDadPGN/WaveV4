@@ -2,7 +2,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./README/wavelogo-white.png">
     <source media="(prefers-color-scheme: light)" srcset="./README/wavelogo-dark.png">
-    <img alt="vape logo" src="./README/vapelogo.png">
+    <img alt="vape logo" src="./README/meowlogo.png">
   </picture>
 </p>
 <h2 align="center">
