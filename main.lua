@@ -46,7 +46,7 @@ local function downloadFile(path, func)
         local success = false
         for attempt = 1, 3 do
             local suc, result = pcall(function()
-                return game:HttpGet('https://raw.githubusercontent.com/6GrandDadPGN/WaveV4/' .. readfile('vaperewrite/profiles/commit.txt') .. '/' .. select(1, path:gsub('vaperewrite/', '')), true)
+                return game:HttpGet('https://raw.githubusercontent.com/6GrandDadPGN/MeowV4/' .. readfile('vaperewrite/profiles/commit.txt') .. '/' .. select(1, path:gsub('vaperewrite/', '')), true)
             end)
             if suc and result ~= '404: Not Found' then
                 res = result
@@ -89,7 +89,7 @@ local function finishLoading()
                 repeat task.wait() until game:IsLoaded()
                 if getgenv and not getgenv().shared then getgenv().shared = {} end
                 shared.vapereload = true
-                loadstring(game:HttpGet('https://raw.githubusercontent.com/6GrandDadPGN/WaveV4/'..readfile('vaperewrite/profiles/commit.txt')..'/loader.lua', true), 'loader')()
+                loadstring(game:HttpGet('https://raw.githubusercontent.com/6GrandDadPGN/MeowV4/'..readfile('vaperewrite/profiles/commit.txt')..'/loader.lua', true), 'loader')()
             ]]
 			if shared.VapeDeveloper then
 				teleportScript = 'shared.VapeDeveloper = true\n'..teleportScript
@@ -171,14 +171,14 @@ if not shared.VapeIndependent then
     else
         if not shared.VapeDeveloper then
             local suc, res = pcall(function()
-                return game:HttpGet('https://raw.githubusercontent.com/6GrandDadPGN/WaveV4/' .. readfile('vaperewrite/profiles/commit.txt') .. '/games/' .. gameFileId .. '.lua', true)
+                return game:HttpGet('https://raw.githubusercontent.com/6GrandDadPGN/MeowV4/' .. readfile('vaperewrite/profiles/commit.txt') .. '/games/' .. gameFileId .. '.lua', true)
             end)
             if suc and res ~= '404: Not Found' then
                 loadstring(downloadFile('vaperewrite/games/' .. gameFileId .. '.lua'), tostring(gameFileId))(...)
             end
         end
     end
- 	vape:CreateNotification('Wave', 'This is in BETA. (Expect To See Bugs)', 5, 'alert')
+ 	vape:CreateNotification('Meow', 'This is in BETA. (Expect To See Bugs)', 5, 'alert')
 	finishLoading()
 else
 	vape.Init = finishLoading
