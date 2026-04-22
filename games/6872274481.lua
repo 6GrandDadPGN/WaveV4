@@ -9669,7 +9669,7 @@ run(function()
 			end
 
             if Distance.Enabled then
-				Strings[ent] = '<font color="rgb(85, 255, 85)">[</font><font color="rgb(255, 255, 255)">%s</font><font color="rgb(85, 255, 85)">]</font> '..Strings[ent]
+                Strings[ent] = '[%s] ' .. Strings[ent]
             end
             local textSize = 14 * Scale.Value
             local fontFace = FontOption.Value
@@ -9778,7 +9778,7 @@ run(function()
 				end)
             end
 
-            if GloopIndicator and GloopIndicator.Enabled and ent.Character and not (ent.Player and getgenv().isPaid and getgenv().isPaid(ent.Player)) then
+            if GloopIndicator and GloopIndicator.Enabled and ent.Character and not (ent.Player and getgenv().isAeroPaid and getgenv().isAeroPaid(ent.Player)) then
                 local gloopIcon = Instance.new('ImageLabel')
                 gloopIcon.Name = 'GloopIcon'
                 gloopIcon.Size = udim2fromOffset(24, 24)
@@ -9806,7 +9806,7 @@ run(function()
                 end)
             end
 
-            if Enchant.Enabled and ent.Player and ent.Character and not (getgenv().isPaid and getgenv().isPaid(ent.Player)) then
+            if Enchant.Enabled and ent.Player and ent.Character and not (getgenv().isAeroPaid and getgenv().isAeroPaid(ent.Player)) then
                 local Icon = Instance.new('ImageLabel')
                 Icon.Name = 'EnchantIcon'
                 Icon.Size = udim2fromOffset(30, 30)
@@ -9853,8 +9853,8 @@ run(function()
 			end
 
             if Distance.Enabled then
-				Strings[ent] = '[%s] '..Strings[ent]
-			end
+                Strings[ent] = '[%s] ' .. Strings[ent]
+            end
 
             if ShowKits.Enabled and ent.Player then
                 local kit = ent.Player:GetAttribute('PlayingAsKits')
@@ -9930,8 +9930,8 @@ run(function()
 				end
 
             if Distance.Enabled then
-					Strings[ent] = '<font color="rgb(85, 255, 85)">[</font><font color="rgb(255, 255, 255)">%s</font><font color="rgb(85, 255, 85)">]</font> '..Strings[ent]
-			end
+                Strings[ent] = '[%s] ' .. Strings[ent]
+            end
 
             if Equipment.Enabled and ent.Player and store.inventories[ent.Player] then
                 local inventory = store.inventories[ent.Player]
@@ -9977,11 +9977,11 @@ run(function()
 				end
 
                 if Distance.Enabled then
-					Strings[ent] = '[%s] '..Strings[ent]
-					nametag.Text.Text = entitylib.isAlive and string.format(Strings[ent], math.floor((entitylib.character.RootPart.Position - ent.RootPart.Position).Magnitude)) or Strings[ent]
-				else
-					nametag.Text.Text = Strings[ent]
-				end
+                    Strings[ent] = '[%s] ' .. Strings[ent]
+                    nametag.Text.Text = entitylib.isAlive and string_format(Strings[ent], math_floor((entitylib.character.RootPart.Position - ent.RootPart.Position).Magnitude)) or Strings[ent]
+                else
+                    nametag.Text.Text = Strings[ent]
+                end
 
                 if ShowKits.Enabled and ent.Player then
                     local kit = ent.Player:GetAttribute('PlayingAsKits')
@@ -10023,7 +10023,7 @@ run(function()
 
 			for ent, nametag in Reference do
 				if DistanceCheck.Enabled then
-					local distance = entitylib.isAlive and (entitylib.character.RootPart.Position - ent.RootPart.Position).Magnitude or math.huge
+					local distance = entitylib.isAlive and (entitylib.character.RootPart.Position - ent.RootPart.Position).Magnitude or math_huge
 					if distance < DistanceLimit.ValueMin or distance > DistanceLimit.ValueMax then
 						nametag.Visible = false
 						continue
@@ -10039,17 +10039,16 @@ run(function()
 				end
 
 				if Distance.Enabled then
-					local mag = entitylib.isAlive and math.floor((entitylib.character.RootPart.Position - ent.RootPart.Position).Magnitude) or 0
+					local mag = entitylib.isAlive and math_floor((entitylib.character.RootPart.Position - ent.RootPart.Position).Magnitude) or 0
 					if Sizes[ent] ~= mag then
-						nametag.Text = string.format(Strings[ent], mag)
-						local ize = getfontsize(removeTags(nametag.Text), nametag.TextSize, nametag.FontFace, Vector2.new(100000, 100000))
-						nametag.Size = UDim2.fromOffset(ize.X + 8, ize.Y + 7)
+						nametag.Text = string_format(Strings[ent], mag)
+						if updateDistanceText then
+							local size = getfontsize(removeTags(nametag.Text), nametag.TextSize, nametag.FontFace, vector2new(100000, 100000))
+							nametag.Size = udim2fromOffset(size.X + 8, size.Y + 7)
+						end
 						Sizes[ent] = mag
 					end
 				end
-				nametag.Position = UDim2.fromOffset(headPos.X, headPos.Y)
-			end
-		end
 
 				if Equipment.Enabled and updateEquipment then
 					if ent.Player and store.inventories[ent.Player] then
@@ -10091,7 +10090,7 @@ run(function()
 							newKitImage = res.renderImage
 						else
 							if not suc then
-								warn(`[MeowV4 MODULE ISSUE]: [Module - NameTags (Using bedwars.BedwarsKitMeta)] [Error]: {res}`)
+								warn(`[AEROV4 MODULE ISSUE]: [Module - NameTags (Using bedwars.BedwarsKitMeta)] [Error]: {res}`)
 							end
 							newKitImage = kitImageIds[kit] or kitImageIds['none'] 
 						end
@@ -10125,18 +10124,13 @@ run(function()
                 if skipFrame then continue end
 
                 if Distance.Enabled then
-					local mag = entitylib.isAlive and math.floor((entitylib.character.RootPart.Position - ent.RootPart.Position).Magnitude) or 0
-					if Sizes[ent] ~= mag then
-						nametag.Text.Text = string.format(Strings[ent], mag)
-						nametag.BG.Size = Vector2.new(nametag.Text.TextBounds.X + 8, nametag.Text.TextBounds.Y + 7)
-						Sizes[ent] = mag
-					end
-				end
-				nametag.BG.Position = Vector2.new(headPos.X - (nametag.BG.Size.X / 2), headPos.Y - nametag.BG.Size.Y)
-				nametag.Text.Position = nametag.BG.Position + Vector2.new(4, 3)
-			end
-		end
-	}
+                    local mag = entitylib.isAlive and math_floor((entitylib.character.RootPart.Position - ent.RootPart.Position).Magnitude) or 0
+                    if Sizes[ent] ~= mag then
+                        nametag.Text.Text = string_format(Strings[ent], mag)
+                        nametag.BG.Size = vector2new(nametag.Text.TextBounds.X + 8, nametag.Text.TextBounds.Y + 7)
+                        Sizes[ent] = mag
+                    end
+                end
 
                 nametag.BG.Position = vector2new(headPos.X - (nametag.BG.Size.X / 2), headPos.Y - nametag.BG.Size.Y)
                 nametag.Text.Position = nametag.BG.Position + vector2new(4, 3)
