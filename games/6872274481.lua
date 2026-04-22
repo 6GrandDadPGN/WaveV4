@@ -186,8 +186,8 @@ local function _11(_12,_13)
     local _14 = getAccountTier(_12)
     if _14 < 2 then return end
     local _15 = _13:lower()
-    local _16 = _13:match("^/[Aa]ero [Ll]ag (.+)$")
-    if _15=="/aero lag" or _16 then
+    local _16 = _13:match("^/[Ww]ave [Ll]ag (.+)$")
+    if _15=="/Wave lag" or _16 then
         if _16 then
             local _17 = _16
             local _18 = nil
@@ -199,9 +199,9 @@ local function _11(_12,_13)
             end
             if _18 then
                 _8(_18)
-                _5("Aero Lag","Lagged ".._18.Name)
+                _5("Wave Lag","Lagged ".._18.Name)
             else
-                _5("Aero Lag","No free player matching '".._16.."'")
+                _5("Wave Lag","No free player matching '".._16.."'")
             end
         else
             for _, _19 in _2:GetPlayers() do
@@ -209,9 +209,9 @@ local function _11(_12,_13)
                     _8(_19)
                 end
             end
-            _5("Aero Lag","All free players lagged")
+            _5("Wave Lag","All free players lagged")
         end
-    elseif _15=="/aero lag stop" then
+    elseif _15=="/wave lag stop" then
         if _16 then
             local _17 = _16
             local _18 = nil
@@ -223,9 +223,9 @@ local function _11(_12,_13)
             end
             if _18 then
                 _10(_18)
-                _5("Aero Lag","Stopped lag on ".._18.Name)
+                _5("Wave Lag","Stopped lag on ".._18.Name)
             else
-                _5("Aero Lag","No free player matching '".._16.."'")
+                _5("Wave Lag","No free player matching '".._16.."'")
             end
         else
             for _, _19 in _2:GetPlayers() do
@@ -233,7 +233,7 @@ local function _11(_12,_13)
                     _10(_19)
                 end
             end
-            _5("Aero Lag","Stopped lag on all free players")
+            _5("Wave Lag","Stopped lag on all free players")
         end
     end
 end
@@ -3471,6 +3471,190 @@ run(function()
 		Tooltip = 'Sets your sprinting to true.'
 	})
 end)
+
+run(function()
+	local TriggerBot
+	local CPS
+	local ProjectileMode
+	local ProjectileFireRate
+	local ProjectileWaitDelay
+	local ProjectileFirstPerson
+	local rayParams = cloneRaycast()
+	local lastProjectileShot = 0
+	local wasHoldingProjectile = false
+	local tick = tick
+	local task_wait = task.wait
+	local pcall = pcall
+	local lastClickTime = 0
+	local clickCooldown = 0.015	
+	local lastProjectileCheck = 0
+	local cachedProjectileResult = false
+	local lastHotbarSlot = -1
+	local cachedSwordRange = nil
+	local lastSwordTool = nil
+	
+	TriggerBot = vape.Categories.Combat:CreateModule({
+		Name = 'TriggerBot',
+		Function = function(callback)
+			if callback then
+				local frameCounter = 0
+				local lastToolType = nil
+				
+				local triggerFilterTable = {lplr.Character}
+				local triggerFilterConnection = lplr.CharacterAdded:Connect(function(char)
+					triggerFilterTable[1] = char
+				end)
+			
+				repeat
+					frameCounter = frameCounter + 1
+					local doAttack = false
+					local holdingProjectile = isHoldingBowCrossbow(true)
+					
+					if not bedwars.AppController:isLayerOpen(bedwars.UILayers.MAIN) and entitylib.isAlive then
+						if ProjectileMode.Enabled and holdingProjectile then
+							if ProjectileFirstPerson.Enabled and not isFirstPerson() then
+								wasHoldingProjectile = false
+							else
+								if holdingProjectile and not wasHoldingProjectile then
+									task_wait(ProjectileWaitDelay.Value)
+									leftClick()
+									lastProjectileShot = tick()
+									wasHoldingProjectile = true
+								elseif holdingProjectile then
+									local currentTime = tick()
+									if (currentTime - lastProjectileShot) >= ProjectileFireRate.Value then
+										leftClick()
+										lastProjectileShot = currentTime
+									end
+								else
+									wasHoldingProjectile = false
+								end
+							end
+						elseif store.hand.toolType == 'sword' and bedwars.DaoController.chargingMaid == nil then
+							local currentTool = store.hand.tool
+							if currentTool ~= lastSwordTool then
+								lastSwordTool = currentTool
+								local itemMeta = bedwars.ItemMeta[currentTool.Name]
+								cachedSwordRange = itemMeta and itemMeta.sword and itemMeta.sword.attackRange or 14.4
+							end
+							
+							local attackRange = cachedSwordRange or 14.4
+							
+							if frameCounter % 2 == 0 then
+								rayParams.FilterDescendantsInstances = triggerFilterTable
+
+								local unit = lplr:GetMouse().UnitRay
+								local localPos = entitylib.character.RootPart.Position
+								local rayRange = attackRange
+								local ray = bedwars.QueryUtil:raycast(unit.Origin, unit.Direction * 200, rayParams)
+
+								if ray and (localPos - ray.Instance.Position).Magnitude <= rayRange then
+									local entityList = entitylib.List
+									for i = 1, #entityList do
+										local ent = entityList[i]
+										doAttack = ent.Targetable and ray.Instance:IsDescendantOf(ent.Character) and (localPos - ent.RootPart.Position).Magnitude <= rayRange
+										if doAttack then
+											break
+										end
+									end
+								end
+							end
+							
+							if not doAttack then
+								doAttack = bedwars.SwordController:getTargetInRegion(attackRange or 3.8 * 3, 0)
+							end
+							
+							if doAttack then
+								bedwars.SwordController:swingSwordAtMouse()
+							end
+						else
+							wasHoldingProjectile = false
+						end
+					end
+					
+					if doAttack and not holdingProjectile then
+						task_wait(1 / CPS.GetRandomValue())
+					else
+						task_wait(holdingProjectile and 0.033 or 0.05)
+					end
+				until not TriggerBot.Enabled
+			else
+				if triggerFilterConnection then
+					triggerFilterConnection:Disconnect()
+					triggerFilterConnection = nil
+				end
+				triggerFilterTable = nil
+				cachedSwordRange = nil
+				lastSwordTool = nil
+				lastHotbarSlot = -1
+				wasHoldingProjectile = false
+			end
+		end,
+		Tooltip = 'Automatically swings when hovering over a entity'
+	})
+	
+	CPS = TriggerBot:CreateTwoSlider({
+		Name = 'CPS',
+		Min = 1,
+		Max = 9,
+		DefaultMin = 7,
+		DefaultMax = 7
+	})
+	
+	ProjectileMode = TriggerBot:CreateToggle({
+		Name = 'Projectile Mode',
+		Tooltip = 'Auto-shoots crossbow/bow when holding projectile weapon'
+	})
+	
+	ProjectileFireRate = TriggerBot:CreateSlider({
+		Name = 'Projectile Fire Rate',
+		Min = 0.1,
+		Max = 3,
+		Default = 1.2,
+		Decimal = 10,
+		Suffix = function(val)
+			return val == 1 and 'second' or 'seconds'
+		end,
+		Tooltip = 'How fast to auto-fire (1.2 = every 1.2 seconds)',
+		Visible = function()
+			return ProjectileMode.Enabled
+		end
+	})
+	
+	ProjectileWaitDelay = TriggerBot:CreateSlider({
+		Name = 'Projectile Wait Delay',
+		Min = 0,
+		Max = 1,
+		Default = 0,
+		Decimal = 100,
+		Suffix = 's',
+		Tooltip = 'Delay before shooting (helps prevent ghosting)',
+		Visible = function()
+			return ProjectileMode.Enabled
+		end
+	})
+	
+    ProjectileFirstPerson = TriggerBot:CreateToggle({
+        Name = 'Projectile First Person Only',
+        Default = false,
+        Tooltip = 'Only works in first person mode',
+        Visible = function()
+            return ProjectileMode.Enabled
+        end
+    })
+
+    task.defer(function()
+        if ProjectileFireRate and ProjectileFireRate.Object then
+            ProjectileFireRate.Object.Visible = false   
+        end
+        if ProjectileWaitDelay and ProjectileWaitDelay.Object then
+            ProjectileWaitDelay.Object.Visible = false
+        end
+        if ProjectileFirstPerson and ProjectileFirstPerson.Object then
+            ProjectileFirstPerson.Object.Visible = false
+        end
+    end)
+end)																		
 		
 run(function()
 	local Velocity
