@@ -8,7 +8,7 @@
 <h2 align="center">
   A Roblox script built by the owner 6GrandDadPGN!
   <br/>
-  And a Better Version of AeroV4.
+  Rise up to the top while remaining completely untouchable.
 </h2>
 
 ## Usage
