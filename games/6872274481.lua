@@ -9478,9 +9478,10 @@ run(function()
             if Teammates.Enabled and (not ent.Targetable) and (not ent.Friend) then return end
             Strings[ent] = ent.Player and whitelist:tag(ent.Player, true) .. (DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 
-            if Health.Enabled then
-                Strings[ent] = Strings[ent] .. ' ' .. math_round(ent.Health)
-            end
+           if Health.Enabled then
+				local healthColor = Color3.fromHSV(math.clamp(ent.Health / ent.MaxHealth, 0, 1) / 2.5, 0.89, 0.75)
+				Strings[ent] = Strings[ent]..' <font color="rgb('..tostring(math.floor(healthColor.R * 255))..','..tostring(math.floor(healthColor.G * 255))..','..tostring(math.floor(healthColor.B * 255))..')">'..math.round(ent.Health)..'</font>'
+			end
 
             if Distance.Enabled then
                 Strings[ent] = '[%s] ' .. Strings[ent]
@@ -9663,8 +9664,8 @@ run(function()
             Strings[ent] = ent.Player and whitelist:tag(ent.Player, true) .. (DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 
             if Health.Enabled then
-                Strings[ent] = Strings[ent] .. ' ' .. math_round(ent.Health)
-            end
+				Strings[ent] = Strings[ent]..' '..math.round(ent.Health)
+			end
 
             if Distance.Enabled then
                 Strings[ent] = '[%s] ' .. Strings[ent]
@@ -9739,8 +9740,9 @@ run(function()
             Strings[ent] = ent.Player and whitelist:tag(ent.Player, true) .. (DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 
             if Health.Enabled then
-                Strings[ent] = Strings[ent] .. ' ' .. math_round(ent.Health)
-            end
+					local healthColor = Color3.fromHSV(math.clamp(ent.Health / ent.MaxHealth, 0, 1) / 2.5, 0.89, 0.75)
+					Strings[ent] = Strings[ent]..' <font color="rgb('..tostring(math.floor(healthColor.R * 255))..','..tostring(math.floor(healthColor.G * 255))..','..tostring(math.floor(healthColor.B * 255))..')">'..math.round(ent.Health)..'</font>'
+				end
 
             if Distance.Enabled then
                 Strings[ent] = '[%s] ' .. Strings[ent]
@@ -9786,8 +9788,8 @@ run(function()
                 Strings[ent] = ent.Player and whitelist:tag(ent.Player, true) .. (DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 
                 if Health.Enabled then
-                    Strings[ent] = Strings[ent] .. ' ' .. math_round(ent.Health)
-                end
+					Strings[ent] = Strings[ent]..' '..math.round(ent.Health)
+				end
 
                 if Distance.Enabled then
                     Strings[ent] = '[%s] ' .. Strings[ent]
