@@ -2,7 +2,7 @@
 local run = function(func)
     local ok, err = pcall(func)
     if not ok then
-        warn('[WaveV4] module failed to load: ' .. tostring(err))
+        warn('[MeowV4] module failed to load: ' .. tostring(err))
     end
 end
 local vapeEvents = setmetatable({}, {
@@ -2896,7 +2896,7 @@ run(function()
                     end
                     
                     local kitLabel = Instance.new("ImageLabel")
-                    kitLabel.Name = "WaveV4KitIcon"
+                    kitLabel.Name = "MeowV4KitIcon"
                     kitLabel.Size = UDim2.new(1, 0, 1, 0)
                     kitLabel.Position = UDim2.new(1.1, 0, 0, 0)
                     kitLabel.BackgroundTransparency = 1
@@ -10089,7 +10089,7 @@ run(function()
 							newKitImage = res.renderImage
 						else
 							if not suc then
-								warn(`[WaveV4 MODULE ISSUE]: [Module - NameTags (Using bedwars.BedwarsKitMeta)] [Error]: {res}`)
+								warn(`[MeowV4 MODULE ISSUE]: [Module - NameTags (Using bedwars.BedwarsKitMeta)] [Error]: {res}`)
 							end
 							newKitImage = kitImageIds[kit] or kitImageIds['none'] 
 						end
@@ -10832,7 +10832,7 @@ run(function()
 							part.Size =  Vector3.new(64,64,64)
 							part.CFrame = obj.Value
 							part.Parent = workspace
-							part.Name = "AutoKitRagnarPartWMWaveV4"
+							part.Name = "AutoKitRagnarPartWMMeowV4"
 							bedwars.QueryUtil:setQueryIgnored(part, true)
 							part.Touched:Connect(function(v)
 								if v.Parent.Name == lplr.Name then
@@ -16883,7 +16883,7 @@ run(function()
 	local detectedPlayers = {}
 	local processing = {}
 
-	getgenv()._wavev4_staffCounts = {spec=0, closet=0, mod=0, impossible=0}
+	getgenv()._meowV4_staffCounts = {spec=0, closet=0, mod=0, impossible=0}
 	local function refreshStaffCounts()
 		local c = {spec=0, closet=0, mod=0, impossible=0}
 		for _, data in pairs(detectedPlayers) do
@@ -16898,7 +16898,7 @@ run(function()
 				c.mod += 1
 			end
 		end
-		getgenv()._wavev4_staffCounts = c
+		getgenv()._meowV4_staffCounts = c
 		vapeEvents.StaffCountUpdate:Fire()
 	end
 
@@ -28722,7 +28722,7 @@ run(function()
 			if callback then
 				local syncEvents = bedwars.ClientSyncEvents
 				if not syncEvents or not syncEvents.SwordSwing then
-					warn('[WaveV4] martinspeed: swordswing event not found')
+					warn('[MeowV4] martinspeed: swordswing event not found')
 					return
 				end
 				local ok, conn = pcall(function()
@@ -28741,7 +28741,7 @@ run(function()
 				if ok and conn then
 					martinConn = conn
 				else
-					warn('[WaveV4] martinspeed: failed to hook swordswing')
+					warn('[MeowV4] martinspeed: failed to hook swordswing')
 				end
 			else
 				if martinConn then
@@ -28768,7 +28768,7 @@ run(function()
 						bedwars.GlacialSkaterController:updateMomentum(100, "newValue")
 					end)
 					if not suc then
-						warn(`[WaveV4 MODULE ISSUE]: [Module - InfKrystal (Starting to update Momentum)] [Error]: {res}`)
+						warn(`[MeowV4 MODULE ISSUE]: [Module - InfKrystal (Starting to update Momentum)] [Error]: {res}`)
 						runService:UnbindFromRenderStep('InfiniteKrystalMovement')
 					end
 				end)
@@ -28779,7 +28779,7 @@ run(function()
 					bedwars.GlacialSkaterController:updateMomentum(0, "newValue")
 				end)
 				if not suc then
-					warn(`[WaveV4 MODULE ISSUE]: [Module - InfKrystal (Resetting updateMomentum function)] [Error]: {res}`)
+					warn(`[MeowV4 MODULE ISSUE]: [Module - InfKrystal (Resetting updateMomentum function)] [Error]: {res}`)
 				end
 			end
 		end
