@@ -56,4 +56,6 @@ if not shared.VapeDeveloper then
 	writefile('vaperewrite/profiles/commit.txt', commit)
 end
 
-return loadstring(downloadFile('vaperewrite/main.lua'), 'main')()
+return loadstring(downloadFile('vaperewrite/main.lua'), 'main')({
+    Username = shared.ValidatedUsername
+})
