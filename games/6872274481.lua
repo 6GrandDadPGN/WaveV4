@@ -4911,7 +4911,7 @@ run(function()
 	})
 end)
 
--- wave killaura 
+-- meow killaura 
 local Attacking
 run(function()
     local Killaura
@@ -8112,7 +8112,6 @@ run(function()
 					local entityPart = (TargetPart.Value == 'Head') and 'Head' or 'RootPart'
 					local plr = entitylib.EntityMouse({
 						Part = entityPart,
-						Range = FOV.Value,
 						Players = Targets.Players.Enabled,
 						NPCs = (Targets.NPCs and Targets.NPCs.Enabled) or false,
 						Wallcheck = Targets.Walls.Enabled,
@@ -8162,11 +8161,6 @@ run(function()
 						return old(...)
 					end
 
-					local dist = (targetBodyPart.Position - originPos).Magnitude
-					if dist > Range.Value then
-						wasHovering = false
-						return old(...)
-					end
 
 					local pos = shootpos or self:getLaunchPosition(origin)
 					if not pos then
@@ -8309,16 +8303,6 @@ run(function()
 		Default = 'Both',
 		Tooltip = 'Which perspective the aimbot works in'
 	})
-
-	Range = ProjectileAimbot:CreateSlider({
-		Name = 'Range',
-		Min = 10,
-		Max = 500,
-		Default = 100,
-		Tooltip = 'Maximum distance (in studs) for targeting'
-	})
-
-
 
 	FOV = ProjectileAimbot:CreateSlider({
 		Name = 'FOV',
