@@ -8,7 +8,7 @@
 <h2 align="center">
   A Roblox script built by the owner 6GrandDadPGN!
   <br/>
-  A Better Version of AeroV4
+  A Better Version of AeroV4.
 </h2>
 
 ## Usage
