@@ -32836,7 +32836,7 @@ run(function()
 		end,
 		Tooltip = 'Alerts you when enemies are near your bed'
 	})
-
+	
 	DetectionRange = BedAlarm:CreateSlider({
 		Name = 'Detection Range',
 		Function = function() end,
@@ -32982,4 +32982,4 @@ run(function()
 		Tooltip = 'Volume of the alarm sound'
 	})
 end)
-												
+					
