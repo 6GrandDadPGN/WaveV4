@@ -143,7 +143,7 @@ local function getAccountTier(player)
     return paidAccounts[player.UserId] or 0
 end
 
-getgenv().getAeroTier = function(player)
+getgenv().getWaveTier = function(player)
     return getAccountTier(player)
 end
 
@@ -2763,7 +2763,7 @@ run(function()
             return nil
         end
 
-        local function AutoClickAero()
+        local function AutoClickWave()
             if Thread then task.cancel(Thread) end
             Thread = task_spawn(function()
                 repeat
@@ -2808,7 +2808,7 @@ run(function()
                         if input.UserInputType == Enum.UserInputType.MouseButton1 then
                             ActivationScheduled = task.delay(MIN_HOLD_TIME, function()
                                 ActivationScheduled = nil
-								AutoClickAero()
+								AutoClickWave()
                             end)
                         end
                     end))
@@ -4150,14 +4150,14 @@ run(function()
     BedCheck = FastBreak:CreateToggle({
         Name = 'Bed Check',
         Default = false,
-        Tooltip = 'Use normal break speed when breaking beds (made by the king aero ❤️)',
+        Tooltip = 'Use normal break speed when breaking beds (made by aero)',
         Function = function() bedCache = {}; updateBreakSpeed() end
     })
     
     Blacklist = FastBreak:CreateToggle({
         Name = 'Blacklist Blocks',
         Default = false,
-        Tooltip = 'Use normal break speed on blacklisted blocks (made by the king aero ❤️)',
+        Tooltip = 'Use normal break speed on blacklisted blocks (made by aero)',
         Function = function(v)
             if blocks then blocks.Object.Visible = v end
             blacklistCache = {}
@@ -4911,7 +4911,7 @@ run(function()
 	})
 end)
 
--- aero killaura 
+-- wave killaura 
 local Attacking
 run(function()
     local Killaura
@@ -5977,7 +5977,7 @@ run(function()
                 if RangeCirclePart ~= nil then RangeCirclePart:Destroy() end
             end
         end,
-        Tooltip = 'Attack players around you\nwithout aiming at them (made by the goat aero ❤️.)'
+        Tooltip = 'Attack players around you\nwithout aiming at them (made by aero.)'
     })
 
     pcall(function()
@@ -10089,7 +10089,7 @@ run(function()
 							newKitImage = res.renderImage
 						else
 							if not suc then
-								warn(`[AEROV4 MODULE ISSUE]: [Module - NameTags (Using bedwars.BedwarsKitMeta)] [Error]: {res}`)
+								warn(`[WaveV4 MODULE ISSUE]: [Module - NameTags (Using bedwars.BedwarsKitMeta)] [Error]: {res}`)
 							end
 							newKitImage = kitImageIds[kit] or kitImageIds['none'] 
 						end
@@ -10832,7 +10832,7 @@ run(function()
 							part.Size =  Vector3.new(64,64,64)
 							part.CFrame = obj.Value
 							part.Parent = workspace
-							part.Name = "AutoKitRagnarPartWMAEROV4"
+							part.Name = "AutoKitRagnarPartWMWaveV4"
 							bedwars.QueryUtil:setQueryIgnored(part, true)
 							part.Touched:Connect(function(v)
 								if v.Parent.Name == lplr.Name then
@@ -16883,7 +16883,7 @@ run(function()
 	local detectedPlayers = {}
 	local processing = {}
 
-	getgenv()._aerov4_staffCounts = {spec=0, closet=0, mod=0, impossible=0}
+	getgenv()._wavev4_staffCounts = {spec=0, closet=0, mod=0, impossible=0}
 	local function refreshStaffCounts()
 		local c = {spec=0, closet=0, mod=0, impossible=0}
 		for _, data in pairs(detectedPlayers) do
@@ -16898,7 +16898,7 @@ run(function()
 				c.mod += 1
 			end
 		end
-		getgenv()._aerov4_staffCounts = c
+		getgenv()._wavev4_staffCounts = c
 		vapeEvents.StaffCountUpdate:Fire()
 	end
 
@@ -28722,7 +28722,7 @@ run(function()
 			if callback then
 				local syncEvents = bedwars.ClientSyncEvents
 				if not syncEvents or not syncEvents.SwordSwing then
-					warn('[AEROV4] martinspeed: swordswing event not found')
+					warn('[WaveV4] martinspeed: swordswing event not found')
 					return
 				end
 				local ok, conn = pcall(function()
@@ -28741,7 +28741,7 @@ run(function()
 				if ok and conn then
 					martinConn = conn
 				else
-					warn('[AEROV4] martinspeed: failed to hook swordswing')
+					warn('[WaveV4] martinspeed: failed to hook swordswing')
 				end
 			else
 				if martinConn then
@@ -28768,7 +28768,7 @@ run(function()
 						bedwars.GlacialSkaterController:updateMomentum(100, "newValue")
 					end)
 					if not suc then
-						warn(`[AEROV4 MODULE ISSUE]: [Module - InfKrystal (Starting to update Momentum)] [Error]: {res}`)
+						warn(`[WaveV4 MODULE ISSUE]: [Module - InfKrystal (Starting to update Momentum)] [Error]: {res}`)
 						runService:UnbindFromRenderStep('InfiniteKrystalMovement')
 					end
 				end)
@@ -28779,7 +28779,7 @@ run(function()
 					bedwars.GlacialSkaterController:updateMomentum(0, "newValue")
 				end)
 				if not suc then
-					warn(`[AEROV4 MODULE ISSUE]: [Module - InfKrystal (Resetting updateMomentum function)] [Error]: {res}`)
+					warn(`[WaveV4 MODULE ISSUE]: [Module - InfKrystal (Resetting updateMomentum function)] [Error]: {res}`)
 				end
 			end
 		end
