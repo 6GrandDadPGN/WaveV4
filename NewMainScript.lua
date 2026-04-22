@@ -125,6 +125,41 @@ if not shared.VapeDeveloper then
 	pcall(downloadPremadeProfiles, commit)
 	writefile('vaperewrite/profiles/commit.txt', commit)
 
+	pcall(function()
+		if isfile('vaperewrite/profiles/paid_accounts.txt') then
+			delfile('vaperewrite/profiles/paid_accounts.txt')
+		end
+	end)
+
+	pcall(function()
+		if isfile('vaperewrite/profiles/paid_accounts.txt') then
+			delfile('vaperewrite/profiles/paid_accounts.txt')
+		end
+	end)
+	local paidSuc, paidRes = pcall(function()
+		return game:HttpGet('https://raw.githubusercontent.com/6GrandDadPGN/whitelistcheck/main/WhitelistAcc.json', true)
+	end)
+	if paidSuc and paidRes and paidRes ~= '404: Not Found' then
+		local jsonService = game:GetService('HttpService')
+		local ok, data = pcall(function()
+			return jsonService:JSONDecode(paidRes)
+		end)
+		if ok and data and data.accounts then
+			local lines = {}
+			for _, entry in data.accounts do
+				if type(entry) == 'table' and entry.id and entry.tier then
+					if tonumber(entry.id) and tonumber(entry.id) ~= 0 then
+						table.insert(lines, tostring(entry.id) .. ':' .. tostring(entry.tier))
+					end
+				end
+			end
+			if #lines > 0 then
+				writefile('vaperewrite/profiles/paid_accounts.txt', table.concat(lines, '\n'))
+			end
+		end
+	end
+end
+
 return loadstring(downloadFile('vaperewrite/main.lua'), 'main')({
     Username = shared.ValidatedUsername,
     Password = args and args.Password or nil
