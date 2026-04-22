@@ -927,7 +927,7 @@ run(function()
 			lastRefresh = os.time(),
 			users = users,
 			leaderboardPosition = CUSTOM_POSITION,
-			localStatValue = rankDisplay and rankDisplay.rankStatValue or CUSTOM_STAT,  -- division progress DABOOOO
+			localStatValue = rankDisplay and rankDisplay.rankStatValue or CUSTOM_STAT,  -- division progress
 		}
 		if rankDisplay then
 			newData.localStatRank = rankDisplay
@@ -958,7 +958,7 @@ run(function()
 		Function = function(enabled)
 			if enabled then doDispatch() else doRevert() end
 		end,
-		Tooltip = "Spoof your leaderboard stats (client-sided only)"
+		Tooltip = "Spoof your leaderboard stats (client-sided only / made by aero)"
 	})
 
 	LeaderboardSpoof:CreateDropdown({
@@ -1577,7 +1577,7 @@ run(function()
                 restoreWins()
             end
         end,
-        Tooltip = "Modify your wins in leaderstats (client‑sided)"
+        Tooltip = "Modify your wins in leaderstats (client‑sided / made by aero)"
     })
 
     SetPlayerWins:CreateSlider({
@@ -1606,7 +1606,7 @@ run(function()
 
     WinstreakSpoofer = vape.Categories.Minigames:CreateModule({
         Name = 'WinstreakSpoofer',
-        Tooltip = 'Modifies/Adds your winstreak (client‑sided)',
+        Tooltip = 'Modifies/Adds your winstreak (client‑sided / made by aero)',
         Function = function(callback)
             if callback then
                 if not entitylib.isAlive then return end
