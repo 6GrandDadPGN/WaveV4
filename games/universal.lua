@@ -2347,7 +2347,7 @@ run(function()
 				end
 			end
 		end,
-		Tooltip = 'Turns you invisible.'
+		Tooltip = 'This feature is patched by bedwars.'
 	})
 end)
 	
