@@ -5977,7 +5977,7 @@ run(function()
                 if RangeCirclePart ~= nil then RangeCirclePart:Destroy() end
             end
         end,
-        Tooltip = 'Attack players around you\nwithout aiming at them (made by the goat aero ❤️.)'
+        Tooltip = 'Attack players around you\nwithout aiming at them.'
     })
 
     pcall(function()
