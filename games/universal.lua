@@ -2291,6 +2291,8 @@ run(function()
 	
 	Invisible = vape.Categories.Blatant:CreateModule({
 		Name = 'Invisible',
+		Disabled = game.GameId == 2619619496,
+		DisabledTooltip = 'This feature is patched by bedwars',
 		Function = function(callback)
 			if callback then
 				if not proper then
@@ -2345,7 +2347,7 @@ run(function()
 				end
 			end
 		end,
-		Tooltip = 'PATCHED BY BEDWARS.'
+		Tooltip = 'Turns you invisible.'
 	})
 end)
 	
