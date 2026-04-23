@@ -4958,6 +4958,8 @@ run(function()
     local anims, AnimDelay, AnimTween, armC0 = vape.Libraries.auraanims, tick()
     local AttackRemote
     local TargetPriority
+    local CustomHitReg
+    local CustomHitRegSlider
     local lastCustomHitTime = 0
     local AirHit
     local AirHitsChance
@@ -4981,6 +4983,21 @@ run(function()
         AttackRemote = bedwars.Client:Get(remotes.AttackEntity)
         projectileRemote = bedwars.Client:Get(remotes.FireProjectile).instance
     end)
+
+    local function canHitWithCustomReg()
+        if not CustomHitReg or not CustomHitReg.Enabled then return true end
+        if not CustomHitRegSlider then return true end
+        local currentTime = tick()
+        local delayBetweenHits = 10 / CustomHitRegSlider.Value
+        if currentTime - lastCustomHitTime >= delayBetweenHits then
+            lastCustomHitTime = lastCustomHitTime + delayBetweenHits
+            if currentTime - lastCustomHitTime > delayBetweenHits then
+                lastCustomHitTime = currentTime
+            end
+            return true
+        end
+        return false
+    end
 
     local function FireAttackRemote(attackTable, ...)
         if not AttackRemote then return end
@@ -5960,7 +5977,7 @@ run(function()
                 if RangeCirclePart ~= nil then RangeCirclePart:Destroy() end
             end
         end,
-        Tooltip = 'Attack players around you\nwithout aiming at them.'
+        Tooltip = 'Attack players around you\nwithout aiming at them (made by the goat aero ❤️.)'
     })
 
     pcall(function()
@@ -6088,6 +6105,27 @@ run(function()
         Default = 1,
         Decimal = 10,
         Suffix = 's',
+        Visible = false
+    })
+    CustomHitReg = Killaura:CreateToggle({
+        Name = 'Custom Hit Reg',
+        Tooltip = 'Limit how many hits per second',
+        Function = function(callback)
+            if CustomHitRegSlider then
+                CustomHitRegSlider.Object.Visible = callback
+            end
+            if callback then
+                lastCustomHitTime = 0
+            end
+        end
+    })
+    
+    CustomHitRegSlider = Killaura:CreateSlider({
+        Name = 'Hits Per Second',
+        Min = 1,
+        Max = 36,
+        Default = 30,
+        Tooltip = 'Maximum hits per second',
         Visible = false
     })
     SyncHits = Killaura:CreateToggle({
@@ -6425,7 +6463,7 @@ run(function()
         end
     end)
 end)
-
+																																																																	
 -- granddad killaura
 local Attacking
 run(function()
