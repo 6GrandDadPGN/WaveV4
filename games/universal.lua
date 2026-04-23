@@ -2345,7 +2345,7 @@ run(function()
 				end
 			end
 		end,
-		Tooltip = 'Turns you invisible.'
+		Tooltip = 'PATCHED BY BEDWARS.'
 	})
 end)
 	
