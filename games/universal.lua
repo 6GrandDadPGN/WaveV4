@@ -3712,6 +3712,8 @@ run(function()
 	local BoundingBox
 	local Filled
 	local HealthBar
+	local HealthBarColor
+	local HealthBarColorToggle
 	local Name
 	local DisplayName
 	local Background
@@ -3721,12 +3723,19 @@ run(function()
 	local BoxSize
 	local Reference = {}
 	local methodused
-
+ 
 	local function ESPWorldToViewport(pos)
 		local newpos = gameCamera:WorldToViewportPoint(gameCamera.CFrame:pointToWorldSpace(gameCamera.CFrame:PointToObjectSpace(pos)))
 		return Vector2.new(newpos.X, newpos.Y)
 	end
-
+ 
+	local function getHealthBarColor(ent)
+		if HealthBarColorToggle and HealthBarColorToggle.Enabled and HealthBarColor then
+			return Color3.fromHSV(HealthBarColor.Hue, HealthBarColor.Sat, HealthBarColor.Value)
+		end
+		return Color3.fromHSV(math.clamp(ent.Health / ent.MaxHealth, 0, 1) / 2.5, 0.89, 0.75)
+	end
+ 
 	local ESPAdded = {
 		Drawing2D = function(ent)
 			if not Targets.Players.Enabled and ent.Player then return end
@@ -3742,7 +3751,7 @@ run(function()
 			EntityESP.Main.Filled = false
 			EntityESP.Main.Thickness = 1
 			EntityESP.Main.Color = entitylib.getEntityColor(ent) or Color3.fromHSV(Color.Hue, Color.Sat, Color.Value)
-
+ 
 			if BoundingBox.Enabled then
 				EntityESP.Border = Drawing.new('Square')
 				EntityESP.Border.Transparency = 0.35
@@ -3757,19 +3766,19 @@ run(function()
 				EntityESP.Border2.Filled = Filled.Enabled
 				EntityESP.Border2.Color = Color3.new()
 			end
-
+ 
 			if HealthBar.Enabled then
 				EntityESP.HealthLine = Drawing.new('Line')
 				EntityESP.HealthLine.Thickness = 1
 				EntityESP.HealthLine.ZIndex = 2
-				EntityESP.HealthLine.Color = Color3.fromHSV(math.clamp(ent.Health / ent.MaxHealth, 0, 1) / 2.5, 0.89, 0.75)
+				EntityESP.HealthLine.Color = getHealthBarColor(ent)
 				EntityESP.HealthBorder = Drawing.new('Line')
 				EntityESP.HealthBorder.Thickness = 3
 				EntityESP.HealthBorder.Transparency = 0.35
 				EntityESP.HealthBorder.ZIndex = 1
 				EntityESP.HealthBorder.Color = Color3.new()
 			end
-
+ 
 			if Name.Enabled then
 				if Background.Enabled then
 					EntityESP.TextBKG = Drawing.new('Square')
@@ -3814,13 +3823,13 @@ run(function()
 			EntityESP.Line10 = Drawing.new('Line')
 			EntityESP.Line11 = Drawing.new('Line')
 			EntityESP.Line12 = Drawing.new('Line')
-
+ 
 			local color = entitylib.getEntityColor(ent) or Color3.fromHSV(Color.Hue, Color.Sat, Color.Value)
 			for _, v in EntityESP do
 				v.Thickness = 1
 				v.Color = color
 			end
-
+ 
 			Reference[ent] = EntityESP
 		end,
 		DrawingSkeleton = function(ent)
@@ -3840,17 +3849,17 @@ run(function()
 			EntityESP.RightArm = Drawing.new('Line')
 			EntityESP.LeftLeg = Drawing.new('Line')
 			EntityESP.RightLeg = Drawing.new('Line')
-
+ 
 			local color = entitylib.getEntityColor(ent) or Color3.fromHSV(Color.Hue, Color.Sat, Color.Value)
 			for _, v in EntityESP do
 				v.Thickness = 2
 				v.Color = color
 			end
-
+ 
 			Reference[ent] = EntityESP
 		end
 	}
-
+ 
 	local ESPRemoved = {
 		Drawing2D = function(ent)
 			local EntityESP = Reference[ent]
@@ -3870,7 +3879,7 @@ run(function()
 	}
 	ESPRemoved.Drawing3D = ESPRemoved.Drawing2D
 	ESPRemoved.DrawingSkeleton = ESPRemoved.Drawing2D
-
+ 
 	local ESPUpdated = {
 		Drawing2D = function(ent)
 			local EntityESP = Reference[ent]
@@ -3878,11 +3887,11 @@ run(function()
 				if vape.ThreadFix then
 					setthreadidentity(8)
 				end
-
+ 
 				if EntityESP.HealthLine then
-					EntityESP.HealthLine.Color = Color3.fromHSV(math.clamp(ent.Health / ent.MaxHealth, 0, 1) / 2.5, 0.89, 0.75)
+					EntityESP.HealthLine.Color = getHealthBarColor(ent)
 				end
-
+ 
 				if EntityESP.Text then
 					EntityESP.Text.Text = ent.Player and whitelist:tag(ent.Player, true)..(DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 					EntityESP.Drop.Text = EntityESP.Text.Text
@@ -3890,7 +3899,7 @@ run(function()
 			end
 		end
 	}
-
+ 
 	local ColorFunc = {
 		Drawing2D = function(hue, sat, val)
 			local color = Color3.fromHSV(hue, sat, val)
@@ -3912,7 +3921,7 @@ run(function()
 		end
 	}
 	ColorFunc.DrawingSkeleton = ColorFunc.Drawing3D
-
+ 
 	local ESPLoop = {
 		Drawing2D = function()
 			for ent, EntityESP in Reference do
@@ -3925,19 +3934,19 @@ run(function()
 						continue
 					end
 				end
-
+ 
 				local pos = ent.RootPart.Position
-
+ 
 				if shared.vape and shared.vape.hackerTable and table.find(shared.vape.hackerTable, ent.Player) and entitylib.isAlive then
 					pos = Vector3.new(pos.X, entitylib.character.RootPart.Position.Y, pos.Z)
 				end
-
+ 
 				local rootPos, rootVis = gameCamera:WorldToViewportPoint(pos - Vector3.new(0, 0.5, 0))
 				for _, obj in EntityESP do
 					obj.Visible = rootVis
 				end
 				if not rootVis then continue end
-
+ 
 				local scale = BoxSize.Value
 				local topPos = gameCamera:WorldToViewportPoint((CFrame.lookAlong(pos - Vector3.new(0, 0.5, 0), gameCamera.CFrame.LookVector) * CFrame.new(scale, ent.HipHeight * scale, 0)).p)
 				local bottomPos = gameCamera:WorldToViewportPoint((CFrame.lookAlong(pos - Vector3.new(0, 0.5, 0), gameCamera.CFrame.LookVector) * CFrame.new(-scale, -ent.HipHeight * scale - 1, 0)).p)
@@ -3951,7 +3960,7 @@ run(function()
 					EntityESP.Border2.Position = Vector2.new(posx + 1, posy - 1) // 1
 					EntityESP.Border2.Size = Vector2.new(sizex - 2, sizey + 2) // 1
 				end
-
+ 
 				if EntityESP.HealthLine then
 					local healthposy = sizey * math.clamp(ent.Health / ent.MaxHealth, 0, 1)
 					EntityESP.HealthLine.Visible = ent.Health > 0
@@ -3960,7 +3969,7 @@ run(function()
 					EntityESP.HealthBorder.From = Vector2.new(posx - 6, posy + 1) // 1
 					EntityESP.HealthBorder.To = Vector2.new(posx - 6, (posy + sizey) - 1) // 1
 				end
-
+ 
 				if EntityESP.Text then
 					EntityESP.Text.Position = Vector2.new(posx + (sizex / 2) + 4, posy + (sizey - 28)) // 1
 					EntityESP.Drop.Position = EntityESP.Text.Position + Vector2.new(0.5, 0.5)
@@ -3982,19 +3991,19 @@ run(function()
 						continue
 					end
 				end
-
+ 
 				local pos = ent.RootPart.Position
-
+ 
 				if shared.vape and shared.vape.hackerTable and table.find(shared.vape.hackerTable, ent.Player) and entitylib.isAlive then
 					pos = Vector3.new(pos.X, entitylib.character.RootPart.Position.Y, pos.Z)
 				end
-
+ 
 				local _, rootVis = gameCamera:WorldToViewportPoint(pos)
 				for _, obj in EntityESP do
 					obj.Visible = rootVis
 				end
 				if not rootVis then continue end
-
+ 
 				local point1 = ESPWorldToViewport(pos + Vector3.new(1.5, ent.HipHeight, 1.5))
 				local point2 = ESPWorldToViewport(pos + Vector3.new(1.5, -ent.HipHeight, 1.5))
 				local point3 = ESPWorldToViewport(pos + Vector3.new(-1.5, ent.HipHeight, 1.5))
@@ -4040,13 +4049,13 @@ run(function()
 						continue
 					end
 				end
-
+ 
 				local _, rootVis = gameCamera:WorldToViewportPoint(ent.RootPart.Position)
 				for _, obj in EntityESP do
 					obj.Visible = rootVis
 				end
 				if not rootVis then continue end
-
+ 
 				local rigcheck = ent.Humanoid.RigType == Enum.HumanoidRigType.R6
 				pcall(function()
 					local offset = rigcheck and CFrame.new(0, -0.8, 0) or CFrame.identity
@@ -4084,7 +4093,7 @@ run(function()
 			end
 		end
 	}
-
+ 
 	ESP = vape.Categories.Render:CreateModule({
 		Name = 'ESP',
 		Function = function(callback)
@@ -4151,6 +4160,8 @@ run(function()
 			BoundingBox.Object.Visible = (val == '2D')
 			Filled.Object.Visible = (val == '2D')
 			HealthBar.Object.Visible = (val == '2D')
+			HealthBarColorToggle.Object.Visible = (val == '2D') and HealthBar.Enabled
+			HealthBarColor.Object.Visible = (val == '2D') and HealthBar.Enabled and HealthBarColorToggle.Enabled
 			Name.Object.Visible = (val == '2D')
 			DisplayName.Object.Visible = Name.Object.Visible and Name.Enabled
 			Background.Object.Visible = Name.Object.Visible and Name.Enabled
@@ -4195,13 +4206,43 @@ run(function()
 	})
 	HealthBar = ESP:CreateToggle({
 		Name = 'Health Bar',
-		Function = function()
+		Function = function(callback)
 			if ESP.Enabled then
 				ESP:Toggle()
 				ESP:Toggle()
 			end
+			HealthBarColorToggle.Object.Visible = callback
+			HealthBarColor.Object.Visible = callback and HealthBarColorToggle.Enabled
 		end,
 		Darker = true
+	})
+	HealthBarColorToggle = ESP:CreateToggle({
+		Name = 'Custom Health Color',
+		Function = function(callback)
+			HealthBarColor.Object.Visible = callback
+			-- update existing drawings immediately
+			for ent, EntityESP in Reference do
+				if EntityESP.HealthLine then
+					EntityESP.HealthLine.Color = getHealthBarColor(ent)
+				end
+			end
+		end,
+		Darker = true,
+		Visible = false
+	})
+	HealthBarColor = ESP:CreateColorSlider({
+		Name = 'Health Bar Color',
+		Function = function(hue, sat, val)
+			if not HealthBarColorToggle.Enabled then return end
+			local color = Color3.fromHSV(hue, sat, val)
+			for _, EntityESP in Reference do
+				if EntityESP.HealthLine then
+					EntityESP.HealthLine.Color = color
+				end
+			end
+		end,
+		Darker = true,
+		Visible = false
 	})
 	Name = ESP:CreateToggle({
 		Name = 'Name',
@@ -4263,7 +4304,7 @@ run(function()
 		Visible = false
 	})
 end)
-	
+ 	
 run(function()
 	local GamingChair = {Enabled = false}
 	local Color
