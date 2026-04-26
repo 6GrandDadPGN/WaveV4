@@ -3776,22 +3776,15 @@ run(function()
 			end
 
 			if HealthBar.Enabled then
-				-- 3 segments: top, mid, bot
-				EntityESP.HealthLineTop = Drawing.new('Line')
-				EntityESP.HealthLineTop.Thickness = 1
-				EntityESP.HealthLineTop.ZIndex = 2
-				EntityESP.HealthLineTop.Color = getHealthBarColor(ent, 'top')
-
-				EntityESP.HealthLineMid = Drawing.new('Line')
-				EntityESP.HealthLineMid.Thickness = 1
-				EntityESP.HealthLineMid.ZIndex = 2
-				EntityESP.HealthLineMid.Color = getHealthBarColor(ent, 'mid')
-
-				EntityESP.HealthLineBot = Drawing.new('Line')
-				EntityESP.HealthLineBot.Thickness = 1
-				EntityESP.HealthLineBot.ZIndex = 2
-				EntityESP.HealthLineBot.Color = getHealthBarColor(ent, 'bot')
-
+				-- gradient: 20 thin lines blending top->mid->bot
+				EntityESP.HealthGradient = {}
+				for i = 1, 20 do
+					local line = Drawing.new('Line')
+					line.Thickness = 1
+					line.ZIndex = 2
+					line.Color = Color3.new(1, 1, 1)
+					EntityESP.HealthGradient[i] = line
+				end
 				EntityESP.HealthBorder = Drawing.new('Line')
 				EntityESP.HealthBorder.Thickness = 3
 				EntityESP.HealthBorder.Transparency = 0.35
@@ -3888,11 +3881,19 @@ run(function()
 					setthreadidentity(8)
 				end
 				Reference[ent] = nil
+				-- clean gradient lines
+				if EntityESP.HealthGradient then
+					for _, line in EntityESP.HealthGradient do
+						pcall(function() line.Visible = false line:Remove() end)
+					end
+				end
 				for _, v in EntityESP do
-					pcall(function()
-						v.Visible = false
-						v:Remove()
-					end)
+					if type(v) ~= 'table' then
+						pcall(function()
+							v.Visible = false
+							v:Remove()
+						end)
+					end
 				end
 			end
 		end
@@ -3908,10 +3909,20 @@ run(function()
 					setthreadidentity(8)
 				end
 
-				if EntityESP.HealthLineTop then
-					EntityESP.HealthLineTop.Color = getHealthBarColor(ent, 'top')
-					EntityESP.HealthLineMid.Color = getHealthBarColor(ent, 'mid')
-					EntityESP.HealthLineBot.Color = getHealthBarColor(ent, 'bot')
+				if EntityESP.HealthGradient then
+					local topC = getHealthBarColor(ent, 'top')
+					local midC = getHealthBarColor(ent, 'mid')
+					local botC = getHealthBarColor(ent, 'bot')
+					for i, line in EntityESP.HealthGradient do
+						local t = (i - 1) / 19
+						if t <= 0.5 then
+							local a = t / 0.5
+							line.Color = topC:Lerp(midC, a)
+						else
+							local a = (t - 0.5) / 0.5
+							line.Color = midC:Lerp(botC, a)
+						end
+					end
 				end
 
 				if EntityESP.Text then
@@ -4267,10 +4278,20 @@ run(function()
 			HealthBarColorMid.Object.Visible = callback
 			HealthBarColorBot.Object.Visible = callback
 			for ent, EntityESP in Reference do
-				if EntityESP.HealthLineTop then
-					EntityESP.HealthLineTop.Color = getHealthBarColor(ent, 'top')
-					EntityESP.HealthLineMid.Color = getHealthBarColor(ent, 'mid')
-					EntityESP.HealthLineBot.Color = getHealthBarColor(ent, 'bot')
+				if EntityESP.HealthGradient then
+					local topC = getHealthBarColor(ent, 'top')
+					local midC = getHealthBarColor(ent, 'mid')
+					local botC = getHealthBarColor(ent, 'bot')
+					for i, line in EntityESP.HealthGradient do
+						local t = (i - 1) / 19
+						if t <= 0.5 then
+							local a = t / 0.5
+							line.Color = topC:Lerp(midC, a)
+						else
+							local a = (t - 0.5) / 0.5
+							line.Color = midC:Lerp(botC, a)
+						end
+					end
 				end
 			end
 		end,
