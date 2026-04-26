@@ -6476,6 +6476,10 @@ run(function()
         Name = 'Swing only',
         Tooltip = 'Only attacks while swinging manually',
         Function = function(callback)
+            if callback and Mouse and Mouse.Enabled then
+                LegitAura:Toggle(false)
+                Mouse:Toggle(false)
+                notif("Killaura", "yo u cant have swing only AND require mouse down on at da same time lol turned both off 4 u ", 5)
             end
         end
     })
