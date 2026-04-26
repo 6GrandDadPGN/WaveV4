@@ -5692,11 +5692,6 @@ run(function()
                 resetSwordCooldown() 
                 lastTargetTime = 0 
                 continueSwingCount = 0
-                if Mouse and LegitAura and Mouse.Enabled and LegitAura.Enabled then
-                    Mouse:Toggle(false)
-                    LegitAura:Toggle(false)
-                    notif("Killaura", "yo u cant have require mouse down AND swing only both on at da same time turned both off 4 u", 5)
-                end
 
                 if RangeCircle.Enabled then
                     createRangeCircle()
@@ -6204,14 +6199,9 @@ run(function()
         Name = 'Target Mode',
         List = methods
     })
-    Mouse = Killaura:CreateToggle({
+     Mouse = Killaura:CreateToggle({
         Name = 'Require mouse down',
         Function = function(callback)
-            if callback and LegitAura and LegitAura.Enabled then
-                Mouse:Toggle(false)
-                LegitAura:Toggle(false)
-                notif("Killaura", "yo u cant have require mouse down AND swing only on at da same time turned both off 4 u ", 5)
-            end
         end
     })
     Swing = Killaura:CreateToggle({Name = 'No Swing'})
@@ -6472,15 +6462,10 @@ run(function()
         end,
         Tooltip = 'Only attacks when the sword is held'
     })
-    LegitAura = Killaura:CreateToggle({
+   LegitAura = Killaura:CreateToggle({
         Name = 'Swing only',
         Tooltip = 'Only attacks while swinging manually',
         Function = function(callback)
-            if callback and Mouse and Mouse.Enabled then
-                LegitAura:Toggle(false)
-                Mouse:Toggle(false)
-                notif("Killaura", "yo u cant have swing only AND require mouse down on at da same time lol turned both off 4 u ", 5)
-            end
         end
     })
     AirHit = Killaura:CreateToggle({
