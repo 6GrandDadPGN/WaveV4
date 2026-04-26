@@ -3712,10 +3712,8 @@ run(function()
 	local BoundingBox
 	local Filled
 	local HealthBar
+	local HealthBarColor
 	local HealthBarColorToggle
-	local HealthBarColorTop
-	local HealthBarColorMid
-	local HealthBarColorBot
 	local Name
 	local DisplayName
 	local Background
@@ -3731,15 +3729,9 @@ run(function()
 		return Vector2.new(newpos.X, newpos.Y)
 	end
 
-	local function getHealthBarColor(ent, segment)
-		if HealthBarColorToggle and HealthBarColorToggle.Enabled then
-			if segment == 'top' then
-				return Color3.fromHSV(HealthBarColorTop.Hue, HealthBarColorTop.Sat, HealthBarColorTop.Value)
-			elseif segment == 'mid' then
-				return Color3.fromHSV(HealthBarColorMid.Hue, HealthBarColorMid.Sat, HealthBarColorMid.Value)
-			elseif segment == 'bot' then
-				return Color3.fromHSV(HealthBarColorBot.Hue, HealthBarColorBot.Sat, HealthBarColorBot.Value)
-			end
+	local function getHealthBarColor(ent)
+		if HealthBarColorToggle and HealthBarColorToggle.Enabled and HealthBarColor then
+			return Color3.fromHSV(HealthBarColor.Hue, HealthBarColor.Sat, HealthBarColor.Value)
 		end
 		return Color3.fromHSV(math.clamp(ent.Health / ent.MaxHealth, 0, 1) / 2.5, 0.89, 0.75)
 	end
@@ -3776,15 +3768,10 @@ run(function()
 			end
 
 			if HealthBar.Enabled then
-				-- gradient: 20 thin lines blending top->mid->bot
-				EntityESP.HealthGradient = {}
-				for i = 1, 20 do
-					local line = Drawing.new('Line')
-					line.Thickness = 1
-					line.ZIndex = 2
-					line.Color = Color3.new(1, 1, 1)
-					EntityESP.HealthGradient[i] = line
-				end
+				EntityESP.HealthLine = Drawing.new('Line')
+				EntityESP.HealthLine.Thickness = 1
+				EntityESP.HealthLine.ZIndex = 2
+				EntityESP.HealthLine.Color = getHealthBarColor(ent)
 				EntityESP.HealthBorder = Drawing.new('Line')
 				EntityESP.HealthBorder.Thickness = 3
 				EntityESP.HealthBorder.Transparency = 0.35
@@ -3881,19 +3868,11 @@ run(function()
 					setthreadidentity(8)
 				end
 				Reference[ent] = nil
-				-- clean gradient lines
-				if EntityESP.HealthGradient then
-					for _, line in EntityESP.HealthGradient do
-						pcall(function() line.Visible = false line:Remove() end)
-					end
-				end
 				for _, v in EntityESP do
-					if type(v) ~= 'table' then
-						pcall(function()
-							v.Visible = false
-							v:Remove()
-						end)
-					end
+					pcall(function()
+						v.Visible = false
+						v:Remove()
+					end)
 				end
 			end
 		end
@@ -3909,20 +3888,8 @@ run(function()
 					setthreadidentity(8)
 				end
 
-				if EntityESP.HealthGradient then
-					local topC = getHealthBarColor(ent, 'top')
-					local midC = getHealthBarColor(ent, 'mid')
-					local botC = getHealthBarColor(ent, 'bot')
-					for i, line in EntityESP.HealthGradient do
-						local t = (i - 1) / 19
-						if t <= 0.5 then
-							local a = t / 0.5
-							line.Color = topC:Lerp(midC, a)
-						else
-							local a = (t - 0.5) / 0.5
-							line.Color = midC:Lerp(botC, a)
-						end
-					end
+				if EntityESP.HealthLine then
+					EntityESP.HealthLine.Color = getHealthBarColor(ent)
 				end
 
 				if EntityESP.Text then
@@ -3984,7 +3951,7 @@ run(function()
 				local topPos = gameCamera:WorldToViewportPoint((CFrame.lookAlong(pos - Vector3.new(0, 0.5, 0), gameCamera.CFrame.LookVector) * CFrame.new(scale, ent.HipHeight * scale, 0)).p)
 				local bottomPos = gameCamera:WorldToViewportPoint((CFrame.lookAlong(pos - Vector3.new(0, 0.5, 0), gameCamera.CFrame.LookVector) * CFrame.new(-scale, -ent.HipHeight * scale - 1, 0)).p)
 				local sizex, sizey = topPos.X - bottomPos.X, topPos.Y - bottomPos.Y
-				local posx, posy = (rootPos.X - sizex / 2), (rootPos.Y - sizey / 2)
+				local posx, posy = (rootPos.X - sizex / 2),  ((rootPos.Y - sizey / 2))
 				EntityESP.Main.Position = Vector2.new(posx, posy) // 1
 				EntityESP.Main.Size = Vector2.new(sizex, sizey) // 1
 				if EntityESP.Border then
@@ -3994,29 +3961,11 @@ run(function()
 					EntityESP.Border2.Size = Vector2.new(sizex - 2, sizey + 2) // 1
 				end
 
-				if EntityESP.HealthLineTop then
+				if EntityESP.HealthLine then
 					local healthposy = sizey * math.clamp(ent.Health / ent.MaxHealth, 0, 1)
-					-- bar fills upward from bottom of box (screen Y increases downward)
-					local barBot = posy + sizey
-					local barTop = barBot - healthposy
-					local seg = healthposy / 3
-
-					-- top segment
-					EntityESP.HealthLineTop.Visible = ent.Health > 0
-					EntityESP.HealthLineTop.From = Vector2.new(posx - 6, barTop) // 1
-					EntityESP.HealthLineTop.To = Vector2.new(posx - 6, barTop + seg) // 1
-
-					-- mid segment
-					EntityESP.HealthLineMid.Visible = ent.Health > 0
-					EntityESP.HealthLineMid.From = Vector2.new(posx - 6, barTop + seg) // 1
-					EntityESP.HealthLineMid.To = Vector2.new(posx - 6, barTop + seg * 2) // 1
-
-					-- bot segment
-					EntityESP.HealthLineBot.Visible = ent.Health > 0
-					EntityESP.HealthLineBot.From = Vector2.new(posx - 6, barTop + seg * 2) // 1
-					EntityESP.HealthLineBot.To = Vector2.new(posx - 6, barBot) // 1
-
-					-- border covers full bar
+					EntityESP.HealthLine.Visible = ent.Health > 0
+					EntityESP.HealthLine.From = Vector2.new(posx - 6, posy + (sizey - (sizey - healthposy))) // 1
+					EntityESP.HealthLine.To = Vector2.new(posx - 6, posy) // 1
 					EntityESP.HealthBorder.From = Vector2.new(posx - 6, posy + 1) // 1
 					EntityESP.HealthBorder.To = Vector2.new(posx - 6, (posy + sizey) - 1) // 1
 				end
@@ -4212,9 +4161,7 @@ run(function()
 			Filled.Object.Visible = (val == '2D')
 			HealthBar.Object.Visible = (val == '2D')
 			HealthBarColorToggle.Object.Visible = (val == '2D') and HealthBar.Enabled
-			HealthBarColorTop.Object.Visible = (val == '2D') and HealthBar.Enabled and HealthBarColorToggle.Enabled
-			HealthBarColorMid.Object.Visible = (val == '2D') and HealthBar.Enabled and HealthBarColorToggle.Enabled
-			HealthBarColorBot.Object.Visible = (val == '2D') and HealthBar.Enabled and HealthBarColorToggle.Enabled
+			HealthBarColor.Object.Visible = (val == '2D') and HealthBar.Enabled and HealthBarColorToggle.Enabled
 			Name.Object.Visible = (val == '2D')
 			DisplayName.Object.Visible = Name.Object.Visible and Name.Enabled
 			Background.Object.Visible = Name.Object.Visible and Name.Enabled
@@ -4265,75 +4212,32 @@ run(function()
 				ESP:Toggle()
 			end
 			HealthBarColorToggle.Object.Visible = callback
-			HealthBarColorTop.Object.Visible = callback and HealthBarColorToggle.Enabled
-			HealthBarColorMid.Object.Visible = callback and HealthBarColorToggle.Enabled
-			HealthBarColorBot.Object.Visible = callback and HealthBarColorToggle.Enabled
+			HealthBarColor.Object.Visible = callback and HealthBarColorToggle.Enabled
 		end,
 		Darker = true
 	})
 	HealthBarColorToggle = ESP:CreateToggle({
-		Name = 'Custom Health Colors',
+		Name = 'Custom Health Color',
 		Function = function(callback)
-			HealthBarColorTop.Object.Visible = callback
-			HealthBarColorMid.Object.Visible = callback
-			HealthBarColorBot.Object.Visible = callback
+			HealthBarColor.Object.Visible = callback
+			-- update existing drawings immediately
 			for ent, EntityESP in Reference do
-				if EntityESP.HealthGradient then
-					local topC = getHealthBarColor(ent, 'top')
-					local midC = getHealthBarColor(ent, 'mid')
-					local botC = getHealthBarColor(ent, 'bot')
-					for i, line in EntityESP.HealthGradient do
-						local t = (i - 1) / 19
-						if t <= 0.5 then
-							local a = t / 0.5
-							line.Color = topC:Lerp(midC, a)
-						else
-							local a = (t - 0.5) / 0.5
-							line.Color = midC:Lerp(botC, a)
-						end
-					end
+				if EntityESP.HealthLine then
+					EntityESP.HealthLine.Color = getHealthBarColor(ent)
 				end
 			end
 		end,
 		Darker = true,
 		Visible = false
 	})
-	HealthBarColorTop = ESP:CreateColorSlider({
-		Name = 'Top Color',
+	HealthBarColor = ESP:CreateColorSlider({
+		Name = 'Health Bar Color',
 		Function = function(hue, sat, val)
 			if not HealthBarColorToggle.Enabled then return end
 			local color = Color3.fromHSV(hue, sat, val)
 			for _, EntityESP in Reference do
-				if EntityESP.HealthLineTop then
-					EntityESP.HealthLineTop.Color = color
-				end
-			end
-		end,
-		Darker = true,
-		Visible = false
-	})
-	HealthBarColorMid = ESP:CreateColorSlider({
-		Name = 'Middle Color',
-		Function = function(hue, sat, val)
-			if not HealthBarColorToggle.Enabled then return end
-			local color = Color3.fromHSV(hue, sat, val)
-			for _, EntityESP in Reference do
-				if EntityESP.HealthLineMid then
-					EntityESP.HealthLineMid.Color = color
-				end
-			end
-		end,
-		Darker = true,
-		Visible = false
-	})
-	HealthBarColorBot = ESP:CreateColorSlider({
-		Name = 'Bottom Color',
-		Function = function(hue, sat, val)
-			if not HealthBarColorToggle.Enabled then return end
-			local color = Color3.fromHSV(hue, sat, val)
-			for _, EntityESP in Reference do
-				if EntityESP.HealthLineBot then
-					EntityESP.HealthLineBot.Color = color
+				if EntityESP.HealthLine then
+					EntityESP.HealthLine.Color = color
 				end
 			end
 		end,
