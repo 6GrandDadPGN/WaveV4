@@ -2229,6 +2229,8 @@ run(function()
 	local AimSpeed
 	local Smoothness
 	local SmoothnessToggle
+	local TweenStyles
+	local TweenOption
 	local Distance
 	local AngleSlider
 	local StrafeMultiplier
@@ -2243,6 +2245,17 @@ run(function()
 	local WorkWithProjectiles
 	local lockedTarget = nil
 	local rng = Random.new()
+	local shakeTime = 0
+
+	local Easing = {
+		Linear  = function(t) return t end,
+		Elastic = function(t) return math.sin(t * math.pi * (0.2 + 2.5 * t^3)) * (1 - t) + t end,
+		Sine    = function(t) return 1 - math.cos(t * math.pi / 2) end,
+		Quad    = function(t) return t^2 end,
+		Cubic   = function(t) return t^3 end,
+		Quart   = function(t) return t^4 end,
+		Back    = function(t) return t^3 - t * math.sin(t * math.pi) end,
+	}
 
 	local function getSmoothedSpeed(speedVal, smoothVal, dt)
 		local baseSpeed = 0.008
@@ -2291,6 +2304,8 @@ run(function()
 		Function = function(callback)
 			if callback then
 				AimAssist:Clean(runService.Heartbeat:Connect(function(dt)
+					shakeTime += dt
+
 					if not entitylib.isAlive then
 						lockedTarget = nil
 						return
@@ -2333,15 +2348,15 @@ run(function()
 							if flatDelta.Magnitude > 0.001 then
 								local angle = math.acos(math.clamp(localfacing:Dot(flatDelta.Unit), -1, 1))
 								if angle < (math.rad(AngleSlider.Value) / 2) then
-									ent = lockedTarget  
+									ent = lockedTarget
 								else
-									lockedTarget = nil 
+									lockedTarget = nil
 								end
 							else
 								lockedTarget = nil
 							end
 						else
-							lockedTarget = nil  
+							lockedTarget = nil
 						end
 					end
 
@@ -2407,35 +2422,42 @@ run(function()
 					end
 
 					if ShakeToggle and ShakeToggle.Enabled and ShakeAmount.Value > 0 then
-						local shakeIntensity = ShakeAmount.Value / 10
-						aimPosition = aimPosition + Vector3.new(
-							(rng:NextNumber() - 0.5) * shakeIntensity,
-							(rng:NextNumber() - 0.5) * shakeIntensity,
-							(rng:NextNumber() - 0.5) * shakeIntensity
-						)
+						local strafing = inputService:IsKeyDown(Enum.KeyCode.A) or inputService:IsKeyDown(Enum.KeyCode.D)
+						local frequency = strafing and 18 or 10
+						local wave = math.sin(shakeTime * frequency + math.cos(shakeTime * 2))
+						local jitter = (rng:NextNumber() - 0.5) * 0.2
+						local power = ShakeAmount.Value * 0.6
+						aimPosition = aimPosition + gameCamera.CFrame.RightVector * (wave * power) + gameCamera.CFrame.UpVector * (jitter * power * 0.5)
 					end
 
-					local finalSpeed
-					if SmoothnessToggle and SmoothnessToggle.Enabled then
+					local targetCFrame = CFrame.lookAt(gameCamera.CFrame.p, aimPosition)
+					local alpha
+
+					if TweenOption and TweenOption.Enabled then
+						-- Tween easing mode
+						local easeFunc = Easing[TweenStyles.Value] or Easing.Linear
+						alpha = math.clamp(easeFunc(AimSpeed.Value * dt), 0, 1)
+					elseif SmoothnessToggle and SmoothnessToggle.Enabled then
+						-- Smoothness lerp mode
 						local speed = getSmoothedSpeed(AimSpeed.Value, Smoothness.Value, dt)
 						if StrafeMultiplier and StrafeMultiplier.Enabled then
 							if inputService:IsKeyDown(Enum.KeyCode.A) or inputService:IsKeyDown(Enum.KeyCode.D) then
 								speed = speed * 1.15
 							end
 						end
-						finalSpeed = speed
-						local targetCFrame = CFrame.lookAt(gameCamera.CFrame.p, aimPosition)
-						gameCamera.CFrame = gameCamera.CFrame:Lerp(targetCFrame, finalSpeed)
+						alpha = speed
 					else
+						-- Raw speed mode
 						local speed = AimSpeed.Value
 						if StrafeMultiplier and StrafeMultiplier.Enabled then
 							if inputService:IsKeyDown(Enum.KeyCode.A) or inputService:IsKeyDown(Enum.KeyCode.D) then
 								speed = speed + 10
 							end
 						end
-						local targetCFrame = CFrame.lookAt(gameCamera.CFrame.p, aimPosition)
-						gameCamera.CFrame = gameCamera.CFrame:Lerp(targetCFrame, speed * dt)
+						alpha = speed * dt
 					end
+
+					gameCamera.CFrame = gameCamera.CFrame:Lerp(targetCFrame, math.clamp(alpha, 0, 1))
 				end))
 			else
 				lockedTarget = nil
@@ -2519,6 +2541,23 @@ run(function()
 		Visible = false
 	})
 
+	TweenOption = AimAssist:CreateToggle({
+		Name = 'Tween Option',
+		Default = false,
+		Tooltip = 'Enables easing-style aim interpolation',
+		Function = function(callback)
+			TweenStyles.Object.Visible = callback
+		end
+	})
+
+	TweenStyles = AimAssist:CreateDropdown({
+		Name = 'Tween Style',
+		List = {'Linear', 'Elastic', 'Sine', 'Quad', 'Cubic', 'Quart', 'Back'},
+		Default = 'Linear',
+		Darker = true,
+		Visible = false
+	})
+
 	PriorityMode = AimAssist:CreateToggle({
 		Name = 'Priority Mode',
 		Default = false,
@@ -2576,6 +2615,9 @@ run(function()
 		end
 		if ShakeAmount and ShakeAmount.Object then
 			ShakeAmount.Object.Visible = false
+		end
+		if TweenStyles and TweenStyles.Object then
+			TweenStyles.Object.Visible = TweenOption and TweenOption.Enabled or false
 		end
 	end)
 end)
