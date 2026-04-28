@@ -10383,7 +10383,7 @@ run(function()
 
     DeviceIcon = NameTags:CreateToggle({
         Name = 'Device Icon',
-        Tooltip = 'Shows device type (Mobile, PC, Controller) next to rank',
+        Tooltip = 'Shows device type (Mobile, PC, Controller) next to rank (Made By Aero)',
         Function = function()
             if NameTags.Enabled then
                 NameTags:Toggle()
