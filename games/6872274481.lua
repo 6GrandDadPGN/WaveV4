@@ -15734,7 +15734,7 @@ run(function()
     local HitFix
 	local PingBased
 	local Options
-    HitFix = vape.Categories.Legit:CreateModule({
+    HitFix = vape.Categories.Combat:CreateModule({
         Name = 'HitFix',
         Function = function(callback)
 
