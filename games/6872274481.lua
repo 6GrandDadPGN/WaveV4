@@ -9369,6 +9369,10 @@ run(function()
     local Background
     local DisplayName
     local Health
+    local HealthColorToggle
+    local HealthColorFull
+    local HealthColorMid
+    local HealthColorLow
     local Distance
     local Equipment
     local DrawingToggle
@@ -9403,6 +9407,29 @@ run(function()
     local color3fromHSV = Color3.fromHSV
     local color3new = Color3.new
     local udim2fromOffset = UDim2.fromOffset
+
+    -- Returns the health color as a Color3 based on ratio
+    local function getHealthColor(ent)
+        local ratio = math.clamp(ent.Health / ent.MaxHealth, 0, 1)
+        if HealthColorToggle and HealthColorToggle.Enabled then
+            local fullC = Color3.fromHSV(HealthColorFull.Hue, HealthColorFull.Sat, HealthColorFull.Value)
+            local midC  = Color3.fromHSV(HealthColorMid.Hue,  HealthColorMid.Sat,  HealthColorMid.Value)
+            local lowC  = Color3.fromHSV(HealthColorLow.Hue,  HealthColorLow.Sat,  HealthColorLow.Value)
+            if ratio >= 0.5 then
+                return fullC:Lerp(midC, (1 - ratio) / 0.5)
+            else
+                return midC:Lerp(lowC, (0.5 - ratio) / 0.5)
+            end
+        else
+            return Color3.fromHSV(math.clamp(ratio / 2.5, 0, 1), 0.89, 0.75)
+        end
+    end
+
+    -- Returns rgb(...) string for rich text use
+    local function getHealthColorStr(ent)
+        local c = getHealthColor(ent)
+        return 'rgb('..math.floor(c.R*255)..','..math.floor(c.G*255)..','..math.floor(c.B*255)..')'
+    end
 
     local enchantImageMap = nil
     local function buildEnchantMap()
@@ -9449,10 +9476,10 @@ run(function()
             if Teammates.Enabled and (not ent.Targetable) and (not ent.Friend) and not (ent.Player and isTeammate(ent.Player)) then return end
             Strings[ent] = ent.Player and whitelist:tag(ent.Player, true) .. (DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 
-           if Health.Enabled then
-				local healthColor = Color3.fromHSV(math.clamp(ent.Health / ent.MaxHealth, 0, 1) / 2.5, 0.89, 0.75)
-				Strings[ent] = Strings[ent]..' <font color="rgb('..tostring(math.floor(healthColor.R * 255))..','..tostring(math.floor(healthColor.G * 255))..','..tostring(math.floor(healthColor.B * 255))..')">'..math.round(ent.Health)..'</font>'
-			end
+            if Health.Enabled then
+                local colorStr = getHealthColorStr(ent)
+                Strings[ent] = Strings[ent]..' <font color="'..colorStr..'">'..math.round(ent.Health)..'</font>'
+            end
 
             if Distance.Enabled then
                 Strings[ent] = '[%s] ' .. Strings[ent]
@@ -9520,7 +9547,6 @@ run(function()
                 kitIcon.Parent = nametag
 
                 local kit = ent.Player:GetAttribute('PlayingAsKits')
-                
                 if kit then
                     local kitImage = kitImageIds[kit:lower()]
                     kitIcon.Image = kitImage or kitImageIds["none"]
@@ -9568,28 +9594,28 @@ run(function()
                 rankIcon.Image = ''
                 rankIcon.Parent = nametag
 
-				task.spawn(function()
-					task.wait(math.random() * 0.5)
-					if vape.ThreadFix then setthreadidentity(8) end
-					local plr = playersService:GetPlayerFromCharacter(ent.Character)
-					if not plr then return end
-					if not rankIcon or not rankIcon.Parent then return end
+                task.spawn(function()
+                    task.wait(math.random() * 0.5)
+                    if vape.ThreadFix then setthreadidentity(8) end
+                    local plr = playersService:GetPlayerFromCharacter(ent.Character)
+                    if not plr then return end
+                    if not rankIcon or not rankIcon.Parent then return end
 
-					local ok, success, data = pcall(function()
-						return bedwars.Client:Get(remotes.Ranks):CallServerAsync({ plr.UserId }):await()
-					end)
+                    local ok, success, data = pcall(function()
+                        return bedwars.Client:Get(remotes.Ranks):CallServerAsync({ plr.UserId }):await()
+                    end)
 
-					if vape.ThreadFix then setthreadidentity(8) end
+                    if vape.ThreadFix then setthreadidentity(8) end
 
-					if ok and success and type(data) == "table" then
-						local division = data[1] and data[1].rankDivision
-						if division and bedwars.RankMeta and bedwars.RankMeta[division] then
-							if rankIcon and rankIcon.Parent then
-								rankIcon.Image = bedwars.RankMeta[division].image
-							end
-						end
-					end
-				end)
+                    if ok and success and type(data) == "table" then
+                        local division = data[1] and data[1].rankDivision
+                        if division and bedwars.RankMeta and bedwars.RankMeta[division] then
+                            if rankIcon and rankIcon.Parent then
+                                rankIcon.Image = bedwars.RankMeta[division].image
+                            end
+                        end
+                    end
+                end)
             end
 
             if GloopIndicator and GloopIndicator.Enabled and ent.Character and not (ent.Player and getAccountTier(ent.Player) >= 1 and getAccountTier(lplr) == 0) then
@@ -9665,8 +9691,10 @@ run(function()
             Strings[ent] = ent.Player and whitelist:tag(ent.Player, true) .. (DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 
             if Health.Enabled then
-				Strings[ent] = Strings[ent]..' '..math.round(ent.Health)
-			end
+                local c = getHealthColor(ent)
+                nametag.Text.Color = c
+                Strings[ent] = Strings[ent]..' '..math.round(ent.Health)
+            end
 
             if Distance.Enabled then
                 Strings[ent] = '[%s] ' .. Strings[ent]
@@ -9741,9 +9769,9 @@ run(function()
             Strings[ent] = ent.Player and whitelist:tag(ent.Player, true) .. (DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 
             if Health.Enabled then
-					local healthColor = Color3.fromHSV(math.clamp(ent.Health / ent.MaxHealth, 0, 1) / 2.5, 0.89, 0.75)
-					Strings[ent] = Strings[ent]..' <font color="rgb('..tostring(math.floor(healthColor.R * 255))..','..tostring(math.floor(healthColor.G * 255))..','..tostring(math.floor(healthColor.B * 255))..')">'..math.round(ent.Health)..'</font>'
-				end
+                local colorStr = getHealthColorStr(ent)
+                Strings[ent] = Strings[ent]..' <font color="'..colorStr..'">'..math.round(ent.Health)..'</font>'
+            end
 
             if Distance.Enabled then
                 Strings[ent] = '[%s] ' .. Strings[ent]
@@ -9751,14 +9779,12 @@ run(function()
 
             if Equipment.Enabled and ent.Player then
                 local inventory = store.inventories[ent.Player] or {hand = nil, armor = {}}
-                
                 local currentEquip = {
                     tostring(inventory.hand and inventory.hand.itemType or ''),
                     tostring((inventory.armor and inventory.armor[4] and inventory.armor[4].itemType) or ''),
                     tostring((inventory.armor and inventory.armor[5] and inventory.armor[5].itemType) or ''),
                     tostring((inventory.armor and inventory.armor[6] and inventory.armor[6].itemType) or '')
                 }
-
                 local equipKey = table.concat(currentEquip, "|")
                 if equipmentCache[ent] ~= equipKey then
                     equipmentCache[ent] = equipKey
@@ -9791,8 +9817,9 @@ run(function()
                 Strings[ent] = ent.Player and whitelist:tag(ent.Player, true) .. (DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 
                 if Health.Enabled then
-					Strings[ent] = Strings[ent]..' '..math.round(ent.Health)
-				end
+                    Strings[ent] = Strings[ent]..' '..math.round(ent.Health)
+                    nametag.Text.Color = getHealthColor(ent)
+                end
 
                 if Distance.Enabled then
                     Strings[ent] = '[%s] ' .. Strings[ent]
@@ -9810,7 +9837,9 @@ run(function()
                 end
 
                 nametag.BG.Size = vector2new(nametag.Text.TextBounds.X + 8, nametag.Text.TextBounds.Y + 7)
-                nametag.Text.Color = entitylib.getEntityColor(ent) or color3fromHSV(Color.Hue, Color.Sat, Color.Value)
+                if not Health.Enabled then
+                    nametag.Text.Color = entitylib.getEntityColor(ent) or color3fromHSV(Color.Hue, Color.Sat, Color.Value)
+                end
             end
         end
     }
@@ -9825,108 +9854,109 @@ run(function()
         Drawing = function(hue, sat, val)
             local color = color3fromHSV(hue, sat, val)
             for i, v in Reference do
-                v.Text.Color = entitylib.getEntityColor(i) or color
+                if not Health.Enabled then
+                    v.Text.Color = entitylib.getEntityColor(i) or color
+                end
             end
         end
     }
 
     local frameCounter = 0
-	Loop = {
-		Normal = function()
-			frameCounter = frameCounter + 1
-			local skipPosition = frameCounter % 3 == 0
-			local skipVisCheck = frameCounter % 2 ~= 0
-			local updateEquipment = frameCounter % 30 == 0
-			local updateKit = frameCounter % 30 == 0
-			local updateDistanceText = frameCounter % 6 == 0
+    Loop = {
+        Normal = function()
+            frameCounter = frameCounter + 1
+            local skipPosition = frameCounter % 3 == 0
+            local skipVisCheck = frameCounter % 2 ~= 0
+            local updateEquipment = frameCounter % 30 == 0
+            local updateKit = frameCounter % 30 == 0
+            local updateDistanceText = frameCounter % 6 == 0
 
-			for ent, nametag in Reference do
-				if DistanceCheck.Enabled then
-					local distance = entitylib.isAlive and (entitylib.character.RootPart.Position - ent.RootPart.Position).Magnitude or math_huge
-					if distance < DistanceLimit.ValueMin or distance > DistanceLimit.ValueMax then
-						nametag.Visible = false
-						continue
-					end
-				end
+            for ent, nametag in Reference do
+                if DistanceCheck.Enabled then
+                    local distance = entitylib.isAlive and (entitylib.character.RootPart.Position - ent.RootPart.Position).Magnitude or math_huge
+                    if distance < DistanceLimit.ValueMin or distance > DistanceLimit.ValueMax then
+                        nametag.Visible = false
+                        continue
+                    end
+                end
 
-				if not skipVisCheck then
-					local headPos, headVis = gameCamera:WorldToViewportPoint(ent.RootPart.Position + vector3new(0, ent.HipHeight + 1, 0))
-					nametag.Visible = headVis
-					if headVis then
-						nametag.Position = udim2fromOffset(headPos.X, headPos.Y)
-					end
-				end
-				if not nametag.Visible then continue end
+                if not skipVisCheck then
+                    local headPos, headVis = gameCamera:WorldToViewportPoint(ent.RootPart.Position + vector3new(0, ent.HipHeight + 1, 0))
+                    nametag.Visible = headVis
+                    if headVis then
+                        nametag.Position = udim2fromOffset(headPos.X, headPos.Y)
+                    end
+                end
+                if not nametag.Visible then continue end
 
-				if skipPosition and headPos and headPos.X then
-					nametag.Position = udim2fromOffset(headPos.X, headPos.Y)
-				end
+                if skipPosition and headPos and headPos.X then
+                    nametag.Position = udim2fromOffset(headPos.X, headPos.Y)
+                end
 
-				if Distance.Enabled then
-					local mag = entitylib.isAlive and math_floor((entitylib.character.RootPart.Position - ent.RootPart.Position).Magnitude) or 0
-					if Sizes[ent] ~= mag then
-						nametag.Text = string_format(Strings[ent], mag)
-						if updateDistanceText then
-							local size = getfontsize(removeTags(nametag.Text), nametag.TextSize, nametag.FontFace, vector2new(100000, 100000))
-							nametag.Size = udim2fromOffset(size.X + 8, size.Y + 7)
-						end
-						Sizes[ent] = mag
-					end
-				end
+                if Distance.Enabled then
+                    local mag = entitylib.isAlive and math_floor((entitylib.character.RootPart.Position - ent.RootPart.Position).Magnitude) or 0
+                    if Sizes[ent] ~= mag then
+                        nametag.Text = string_format(Strings[ent], mag)
+                        if updateDistanceText then
+                            local size = getfontsize(removeTags(nametag.Text), nametag.TextSize, nametag.FontFace, vector2new(100000, 100000))
+                            nametag.Size = udim2fromOffset(size.X + 8, size.Y + 7)
+                        end
+                        Sizes[ent] = mag
+                    end
+                end
 
-				if Equipment.Enabled and updateEquipment then
-					if ent.Player and store.inventories[ent.Player] then
-						local inventory = store.inventories[ent.Player]
-						
-						local currentEquip = {
-							(inventory.hand and inventory.hand.itemType) or '',
-							(inventory.armor and inventory.armor[4] and inventory.armor[4].itemType) or '',
-							(inventory.armor and inventory.armor[5] and inventory.armor[5].itemType) or '',
-							(inventory.armor and inventory.armor[6] and inventory.armor[6].itemType) or ''
-						}
-						local equipKey = table.concat(currentEquip, "|")
-						if equipmentCache[ent] ~= equipKey then
-							equipmentCache[ent] = equipKey
-							if nametag.Hand then
-								nametag.Hand.Image = bedwars.getIcon(inventory.hand or { itemType = '' }, true)
-							end
-							if nametag.Helmet then
-								nametag.Helmet.Image = bedwars.getIcon(inventory.armor and inventory.armor[4] or { itemType = '' }, true)
-							end
-							if nametag.Chestplate then
-								nametag.Chestplate.Image = bedwars.getIcon(inventory.armor and inventory.armor[5] or { itemType = '' }, true)
-							end
-							if nametag.Boots then
-								nametag.Boots.Image = bedwars.getIcon(inventory.armor and inventory.armor[6] or { itemType = '' }, true)
-							end
-						end
-					end
-				end
+                if Equipment.Enabled and updateEquipment then
+                    if ent.Player and store.inventories[ent.Player] then
+                        local inventory = store.inventories[ent.Player]
+                        local currentEquip = {
+                            (inventory.hand and inventory.hand.itemType) or '',
+                            (inventory.armor and inventory.armor[4] and inventory.armor[4].itemType) or '',
+                            (inventory.armor and inventory.armor[5] and inventory.armor[5].itemType) or '',
+                            (inventory.armor and inventory.armor[6] and inventory.armor[6].itemType) or ''
+                        }
+                        local equipKey = table.concat(currentEquip, "|")
+                        if equipmentCache[ent] ~= equipKey then
+                            equipmentCache[ent] = equipKey
+                            if nametag.Hand then
+                                nametag.Hand.Image = bedwars.getIcon(inventory.hand or { itemType = '' }, true)
+                            end
+                            if nametag.Helmet then
+                                nametag.Helmet.Image = bedwars.getIcon(inventory.armor and inventory.armor[4] or { itemType = '' }, true)
+                            end
+                            if nametag.Chestplate then
+                                nametag.Chestplate.Image = bedwars.getIcon(inventory.armor and inventory.armor[5] or { itemType = '' }, true)
+                            end
+                            if nametag.Boots then
+                                nametag.Boots.Image = bedwars.getIcon(inventory.armor and inventory.armor[6] or { itemType = '' }, true)
+                            end
+                        end
+                    end
+                end
 
-				if ShowKits.Enabled and updateKit then
-					local kitIcon = nametag:FindFirstChild('KitIcon')
-					if kitIcon and ent.Player then
-						local kit = ent.Player:GetAttribute('PlayingAsKits')
-						local suc, res = pcall(function()
-							return bedwars.BedwarsKitMeta[kit]
-						end)	
-						local newKitImage = nil
-						if suc and res then
-							newKitImage = res.renderImage
-						else
-							if not suc then
-								warn(`[AEROV4 MODULE ISSUE]: [Module - NameTags (Using bedwars.BedwarsKitMeta)] [Error]: {res}`)
-							end
-							newKitImage = kitImageIds[kit] or kitImageIds['none'] 
-						end
-						if kitCache[ent] ~= newKitImage then
-							kitIcon.Image = newKitImage
-							kitCache[ent] = newKitImage
-						end
-					end
-				end
-			end
-		end,
+                if ShowKits.Enabled and updateKit then
+                    local kitIcon = nametag:FindFirstChild('KitIcon')
+                    if kitIcon and ent.Player then
+                        local kit = ent.Player:GetAttribute('PlayingAsKits')
+                        local suc, res = pcall(function()
+                            return bedwars.BedwarsKitMeta[kit]
+                        end)
+                        local newKitImage = nil
+                        if suc and res then
+                            newKitImage = res.renderImage
+                        else
+                            if not suc then
+                                warn(`[AEROV4 MODULE ISSUE]: [Module - NameTags (Using bedwars.BedwarsKitMeta)] [Error]: {res}`)
+                            end
+                            newKitImage = kitImageIds[kit] or kitImageIds['none']
+                        end
+                        if kitCache[ent] ~= newKitImage then
+                            kitIcon.Image = newKitImage
+                            kitCache[ent] = newKitImage
+                        end
+                    end
+                end
+            end
+        end,
 
         Drawing = function()
             frameCounter = frameCounter + 1
@@ -9947,6 +9977,10 @@ run(function()
                 nametag.BG.Visible = headVis
                 if not headVis then continue end
                 if skipFrame then continue end
+
+                if Health.Enabled then
+                    nametag.Text.Color = getHealthColor(ent)
+                end
 
                 if Distance.Enabled then
                     local mag = entitylib.isAlive and math_floor((entitylib.character.RootPart.Position - ent.RootPart.Position).Magnitude) or 0
@@ -10077,6 +10111,74 @@ run(function()
 
     Health = NameTags:CreateToggle({
         Name = 'Health',
+        Function = function(callback)
+            HealthColorToggle.Object.Visible = callback
+            HealthColorFull.Object.Visible = callback and HealthColorToggle.Enabled
+            HealthColorMid.Object.Visible = callback and HealthColorToggle.Enabled
+            HealthColorLow.Object.Visible = callback and HealthColorToggle.Enabled
+            if NameTags.Enabled then
+                NameTags:Toggle()
+                NameTags:Toggle()
+            end
+        end
+    })
+
+    HealthColorToggle = NameTags:CreateToggle({
+        Name = 'Custom Health Colors',
+        Darker = true,
+        Visible = false,
+        Tooltip = 'Set custom colors for full, mid, and low health',
+        Function = function(callback)
+            HealthColorFull.Object.Visible = callback
+            HealthColorMid.Object.Visible = callback
+            HealthColorLow.Object.Visible = callback
+            if NameTags.Enabled then
+                NameTags:Toggle()
+                NameTags:Toggle()
+            end
+        end
+    })
+
+    HealthColorFull = NameTags:CreateColorSlider({
+        Name = 'Full HP Color',
+        Darker = true,
+        Visible = false,
+        -- default green-ish
+        DefaultHue = 0.4,
+        DefaultSat = 0.89,
+        DefaultValue = 0.75,
+        Function = function()
+            if NameTags.Enabled then
+                NameTags:Toggle()
+                NameTags:Toggle()
+            end
+        end
+    })
+
+    HealthColorMid = NameTags:CreateColorSlider({
+        Name = 'Mid HP Color',
+        Darker = true,
+        Visible = false,
+        -- default yellow-ish
+        DefaultHue = 0.15,
+        DefaultSat = 0.89,
+        DefaultValue = 0.75,
+        Function = function()
+            if NameTags.Enabled then
+                NameTags:Toggle()
+                NameTags:Toggle()
+            end
+        end
+    })
+
+    HealthColorLow = NameTags:CreateColorSlider({
+        Name = 'Low HP Color',
+        Darker = true,
+        Visible = false,
+        -- default red
+        DefaultHue = 0,
+        DefaultSat = 0.89,
+        DefaultValue = 0.75,
         Function = function()
             if NameTags.Enabled then
                 NameTags:Toggle()
@@ -10129,7 +10231,7 @@ run(function()
 
     DeviceIcon = NameTags:CreateToggle({
         Name = 'Device Icon',
-        Tooltip = 'Shows device type (Mobile, PC, Controller) next to rank (Made By Aero)',
+        Tooltip = 'Shows device type (Mobile, PC, Controller) next to rank',
         Function = function()
             if NameTags.Enabled then
                 NameTags:Toggle()
@@ -10214,6 +10316,18 @@ run(function()
     task.defer(function()
         if DistanceLimit and DistanceLimit.Object then
             DistanceLimit.Object.Visible = false
+        end
+        if HealthColorToggle and HealthColorToggle.Object then
+            HealthColorToggle.Object.Visible = false
+        end
+        if HealthColorFull and HealthColorFull.Object then
+            HealthColorFull.Object.Visible = false
+        end
+        if HealthColorMid and HealthColorMid.Object then
+            HealthColorMid.Object.Visible = false
+        end
+        if HealthColorLow and HealthColorLow.Object then
+            HealthColorLow.Object.Visible = false
         end
     end)
 end)
