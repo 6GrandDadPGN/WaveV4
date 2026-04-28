@@ -9628,6 +9628,7 @@ run(function()
     local DrawingToggle
     local ShowKits
     local Rank
+    local DeviceIcon
     local GloopIndicator
     local Enchant
     local Scale
@@ -9699,13 +9700,12 @@ run(function()
         Normal = function(ent)
             if not Targets.Players.Enabled and ent.Player then return end
             if not Targets.NPCs.Enabled and ent.NPC then return end
-            if Teammates.Enabled and (not ent.Targetable) and (not ent.Friend) then return end
+            if Teammates.Enabled and (not ent.Targetable) and (not ent.Friend) and not (ent.Player and isTeammate(ent.Player)) then return end
             Strings[ent] = ent.Player and whitelist:tag(ent.Player, true) .. (DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 
-           if Health.Enabled then
-				local healthColor = Color3.fromHSV(math.clamp(ent.Health / ent.MaxHealth, 0, 1) / 2.5, 0.89, 0.75)
-				Strings[ent] = Strings[ent]..' <font color="rgb('..tostring(math.floor(healthColor.R * 255))..','..tostring(math.floor(healthColor.G * 255))..','..tostring(math.floor(healthColor.B * 255))..')">'..math.round(ent.Health)..'</font>'
-			end
+            if Health.Enabled then
+                Strings[ent] = Strings[ent] .. ' ' .. math_round(ent.Health)
+            end
 
             if Distance.Enabled then
                 Strings[ent] = '[%s] ' .. Strings[ent]
@@ -9745,13 +9745,13 @@ run(function()
                         nametag.Hand.Image = bedwars.getIcon(inventory.hand or { itemType = '' }, true)
                     end
                     if nametag.Helmet then
-                        nametag.Helmet.Image = bedwars.getIcon(inventory.armor[4] or { itemType = '' }, true)
+                        nametag.Helmet.Image = bedwars.getIcon(inventory.armor and inventory.armor[4] or { itemType = '' }, true)
                     end
                     if nametag.Chestplate then
-                        nametag.Chestplate.Image = bedwars.getIcon(inventory.armor[5] or { itemType = '' }, true)
+                        nametag.Chestplate.Image = bedwars.getIcon(inventory.armor and inventory.armor[5] or { itemType = '' }, true)
                     end
                     if nametag.Boots then
-                        nametag.Boots.Image = bedwars.getIcon(inventory.armor[6] or { itemType = '' }, true)
+                        nametag.Boots.Image = bedwars.getIcon(inventory.armor and inventory.armor[6] or { itemType = '' }, true)
                     end
                 end
             end
@@ -9773,7 +9773,7 @@ run(function()
                 kitIcon.Parent = nametag
 
                 local kit = ent.Player:GetAttribute('PlayingAsKits')
-				
+                
                 if kit then
                     local kitImage = kitImageIds[kit:lower()]
                     kitIcon.Image = kitImage or kitImageIds["none"]
@@ -9784,11 +9784,39 @@ run(function()
                 end
             end
 
-            if Rank.Enabled and ent.Player then
+            if DeviceIcon and DeviceIcon.Enabled and ent.Player then
+                local function getPlayerDevice(plr)
+                    local val = plr:GetAttribute('UserInputType') or 'Unknown'
+                    if not val then return 'Unknown' end
+                    val = val:upper()
+                    if val == 'MOBILE' then return 'Mobile'
+                    elseif val == 'GAMEPAD' or val == 'CONTROLLER' then return 'Controller'
+                    else return 'PC' end
+                end
+                local deviceType = getPlayerDevice(ent.Player)
+                if deviceType then
+                    local deviceEmoji = {Mobile = '📱', PC = '🖥', Controller = '🎮', Unknown = '❔'}
+                    local deviceLabel = Instance.new('TextLabel')
+                    deviceLabel.Name = 'DeviceIcon'
+                    deviceLabel.Size = udim2fromOffset(22, 22)
+                    deviceLabel.Position = udim2fromOffset(size.X + 10, -1)
+                    deviceLabel.BackgroundTransparency = 1
+                    deviceLabel.BorderSizePixel = 0
+                    deviceLabel.Text = deviceEmoji[deviceType] or ''
+                    deviceLabel.RichText = false
+                    deviceLabel.TextScaled = false
+                    deviceLabel.TextSize = 16
+                    deviceLabel.FontFace = Font.fromEnum(Enum.Font.Arial)
+                    deviceLabel.TextColor3 = Color3.new(1, 1, 1)
+                    deviceLabel.Parent = nametag
+                end
+            end
+
+            if Rank.Enabled and ent.Player and not (getAccountTier(ent.Player) >= 1 and getAccountTier(lplr) == 0) then
                 local rankIcon = Instance.new('ImageLabel')
                 rankIcon.Name = 'RankIcon'
                 rankIcon.Size = udim2fromOffset(30, 30)
-                rankIcon.Position = udim2fromOffset(size.X + 10, -4)
+                rankIcon.Position = udim2fromOffset(size.X + (DeviceIcon and DeviceIcon.Enabled and 42 or 10), -4)
                 rankIcon.BackgroundTransparency = 1
                 rankIcon.Image = ''
                 rankIcon.Parent = nametag
@@ -9817,14 +9845,16 @@ run(function()
 				end)
             end
 
-            if GloopIndicator and GloopIndicator.Enabled and ent.Character and not (ent.Player and getgenv().isAeroPaid and getgenv().isAeroPaid(ent.Player)) then
+            if GloopIndicator and GloopIndicator.Enabled and ent.Character and not (ent.Player and getAccountTier(ent.Player) >= 1 and getAccountTier(lplr) == 0) then
                 local gloopIcon = Instance.new('ImageLabel')
                 gloopIcon.Name = 'GloopIcon'
                 gloopIcon.Size = udim2fromOffset(24, 24)
                 gloopIcon.BackgroundTransparency = 1
                 gloopIcon.Image = bedwars.getIcon({itemType = 'glue_projectile'}, true)
                 gloopIcon.Visible = false
-                if Rank.Enabled then
+                if Rank.Enabled and DeviceIcon and DeviceIcon.Enabled then
+                    gloopIcon.Position = udim2fromOffset(size.X + 74, -2)
+                elseif Rank.Enabled or (DeviceIcon and DeviceIcon.Enabled) then
                     gloopIcon.Position = udim2fromOffset(size.X + 42, -2)
                 else
                     gloopIcon.Position = udim2fromOffset(size.X + 10, -2)
@@ -9845,7 +9875,7 @@ run(function()
                 end)
             end
 
-            if Enchant.Enabled and ent.Player and ent.Character and not (getgenv().isAeroPaid and getgenv().isAeroPaid(ent.Player)) then
+            if Enchant.Enabled and ent.Player and ent.Character and not (getAccountTier(ent.Player) >= 1 and getAccountTier(lplr) == 0) then
                 local Icon = Instance.new('ImageLabel')
                 Icon.Name = 'EnchantIcon'
                 Icon.Size = udim2fromOffset(30, 30)
@@ -9873,7 +9903,7 @@ run(function()
         Drawing = function(ent)
             if not Targets.Players.Enabled and ent.Player then return end
             if not Targets.NPCs.Enabled and ent.NPC then return end
-            if Teammates.Enabled and (not ent.Targetable) and (not ent.Friend) then return end
+            if Teammates.Enabled and (not ent.Targetable) and (not ent.Friend) and not (ent.Player and isTeammate(ent.Player)) then return end
 
             local nametag = {}
             nametag.BG = Drawing.new('Square')
@@ -9888,8 +9918,8 @@ run(function()
             Strings[ent] = ent.Player and whitelist:tag(ent.Player, true) .. (DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 
             if Health.Enabled then
-				Strings[ent] = Strings[ent]..' '..math.round(ent.Health)
-			end
+                Strings[ent] = Strings[ent] .. ' ' .. math_round(ent.Health)
+            end
 
             if Distance.Enabled then
                 Strings[ent] = '[%s] ' .. Strings[ent]
@@ -9951,6 +9981,21 @@ run(function()
         end
     }
 
+    local function getHealthColor(health, maxHealth)
+        local pct = maxHealth and maxHealth > 0 and (health / maxHealth * 100) or health
+        if pct >= 80 then
+            return '#00AA00'
+        elseif pct >= 60 then
+            return '#55FF55'
+        elseif pct >= 40 then
+            return '#FFFF00'
+        elseif pct >= 20 then
+            return '#FF8800'
+        else
+            return '#FF3333'
+        end
+    end
+
     local Updated = {
         Normal = function(ent)
             local nametag = Reference[ent]
@@ -9964,21 +10009,22 @@ run(function()
             Strings[ent] = ent.Player and whitelist:tag(ent.Player, true) .. (DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 
             if Health.Enabled then
-					local healthColor = Color3.fromHSV(math.clamp(ent.Health / ent.MaxHealth, 0, 1) / 2.5, 0.89, 0.75)
-					Strings[ent] = Strings[ent]..' <font color="rgb('..tostring(math.floor(healthColor.R * 255))..','..tostring(math.floor(healthColor.G * 255))..','..tostring(math.floor(healthColor.B * 255))..')">'..math.round(ent.Health)..'</font>'
-				end
+                local hCol = getHealthColor(ent.Health, ent.MaxHealth)
+                Strings[ent] = Strings[ent] .. ' <font color="' .. hCol .. '">' .. math_round(ent.Health) .. '</font>'
+            end
 
             if Distance.Enabled then
                 Strings[ent] = '[%s] ' .. Strings[ent]
             end
 
-            if Equipment.Enabled and ent.Player and store.inventories[ent.Player] then
-                local inventory = store.inventories[ent.Player]
+            if Equipment.Enabled and ent.Player then
+                local inventory = store.inventories[ent.Player] or {hand = nil, armor = {}}
+                
                 local currentEquip = {
                     tostring(inventory.hand and inventory.hand.itemType or ''),
-                    tostring(inventory.armor[4] and inventory.armor[4].itemType or ''),
-                    tostring(inventory.armor[5] and inventory.armor[5].itemType or ''),
-                    tostring(inventory.armor[6] and inventory.armor[6].itemType or '')
+                    tostring((inventory.armor and inventory.armor[4] and inventory.armor[4].itemType) or ''),
+                    tostring((inventory.armor and inventory.armor[5] and inventory.armor[5].itemType) or ''),
+                    tostring((inventory.armor and inventory.armor[6] and inventory.armor[6].itemType) or '')
                 }
 
                 local equipKey = table.concat(currentEquip, "|")
@@ -9988,13 +10034,13 @@ run(function()
                         nametag.Hand.Image = bedwars.getIcon(inventory.hand or { itemType = '' }, true)
                     end
                     if nametag.Helmet then
-                        nametag.Helmet.Image = bedwars.getIcon(inventory.armor[4] or { itemType = '' }, true)
+                        nametag.Helmet.Image = bedwars.getIcon(inventory.armor and inventory.armor[4] or { itemType = '' }, true)
                     end
                     if nametag.Chestplate then
-                        nametag.Chestplate.Image = bedwars.getIcon(inventory.armor[5] or { itemType = '' }, true)
+                        nametag.Chestplate.Image = bedwars.getIcon(inventory.armor and inventory.armor[5] or { itemType = '' }, true)
                     end
                     if nametag.Boots then
-                        nametag.Boots.Image = bedwars.getIcon(inventory.armor[6] or { itemType = '' }, true)
+                        nametag.Boots.Image = bedwars.getIcon(inventory.armor and inventory.armor[6] or { itemType = '' }, true)
                     end
                 end
             end
@@ -10002,6 +10048,7 @@ run(function()
             local size = getfontsize(removeTags(Strings[ent]), nametag.TextSize, nametag.FontFace, vector2new(100000, 100000))
             nametag.Size = udim2fromOffset(size.X + 8, size.Y + 7)
             nametag.Text = Strings[ent]
+            nametag.TextColor3 = entitylib.getEntityColor(ent) or color3fromHSV(Color.Hue, Color.Sat, Color.Value)
         end,
 
         Drawing = function(ent)
@@ -10012,8 +10059,9 @@ run(function()
                 Strings[ent] = ent.Player and whitelist:tag(ent.Player, true) .. (DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 
                 if Health.Enabled then
-					Strings[ent] = Strings[ent]..' '..math.round(ent.Health)
-				end
+                    local hCol = getHealthColor(ent.Health, ent.MaxHealth)
+                    Strings[ent] = Strings[ent] .. ' <font color="' .. hCol .. '">' .. math_round(ent.Health) .. '</font>'
+                end
 
                 if Distance.Enabled then
                     Strings[ent] = '[%s] ' .. Strings[ent]
@@ -10055,7 +10103,8 @@ run(function()
 	Loop = {
 		Normal = function()
 			frameCounter = frameCounter + 1
-			local skipPosition = frameCounter % 2 == 0
+			local skipPosition = frameCounter % 3 == 0
+			local skipVisCheck = frameCounter % 2 ~= 0
 			local updateEquipment = frameCounter % 30 == 0
 			local updateKit = frameCounter % 30 == 0
 			local updateDistanceText = frameCounter % 6 == 0
@@ -10069,11 +10118,16 @@ run(function()
 					end
 				end
 
-				local headPos, headVis = gameCamera:WorldToViewportPoint(ent.RootPart.Position + vector3new(0, ent.HipHeight + 1, 0))
-				nametag.Visible = headVis
-				if not headVis then continue end
+				if not skipVisCheck then
+					local headPos, headVis = gameCamera:WorldToViewportPoint(ent.RootPart.Position + vector3new(0, ent.HipHeight + 1, 0))
+					nametag.Visible = headVis
+					if headVis then
+						nametag.Position = udim2fromOffset(headPos.X, headPos.Y)
+					end
+				end
+				if not nametag.Visible then continue end
 
-				if skipPosition then
+				if skipPosition and headPos and headPos.X then
 					nametag.Position = udim2fromOffset(headPos.X, headPos.Y)
 				end
 
@@ -10092,11 +10146,12 @@ run(function()
 				if Equipment.Enabled and updateEquipment then
 					if ent.Player and store.inventories[ent.Player] then
 						local inventory = store.inventories[ent.Player]
+						
 						local currentEquip = {
-							inventory.hand and inventory.hand.itemType or '',
-							inventory.armor[4] and inventory.armor[4].itemType or '',
-							inventory.armor[5] and inventory.armor[5].itemType or '',
-							inventory.armor[6] and inventory.armor[6].itemType or ''
+							(inventory.hand and inventory.hand.itemType) or '',
+							(inventory.armor and inventory.armor[4] and inventory.armor[4].itemType) or '',
+							(inventory.armor and inventory.armor[5] and inventory.armor[5].itemType) or '',
+							(inventory.armor and inventory.armor[6] and inventory.armor[6].itemType) or ''
 						}
 						local equipKey = table.concat(currentEquip, "|")
 						if equipmentCache[ent] ~= equipKey then
@@ -10105,13 +10160,13 @@ run(function()
 								nametag.Hand.Image = bedwars.getIcon(inventory.hand or { itemType = '' }, true)
 							end
 							if nametag.Helmet then
-								nametag.Helmet.Image = bedwars.getIcon(inventory.armor[4] or { itemType = '' }, true)
+								nametag.Helmet.Image = bedwars.getIcon(inventory.armor and inventory.armor[4] or { itemType = '' }, true)
 							end
 							if nametag.Chestplate then
-								nametag.Chestplate.Image = bedwars.getIcon(inventory.armor[5] or { itemType = '' }, true)
+								nametag.Chestplate.Image = bedwars.getIcon(inventory.armor and inventory.armor[5] or { itemType = '' }, true)
 							end
 							if nametag.Boots then
-								nametag.Boots.Image = bedwars.getIcon(inventory.armor[6] or { itemType = '' }, true)
+								nametag.Boots.Image = bedwars.getIcon(inventory.armor and inventory.armor[6] or { itemType = '' }, true)
 							end
 						end
 					end
@@ -10333,6 +10388,17 @@ run(function()
     Rank = NameTags:CreateToggle({
         Name = 'Rank',
         Tooltip = 'Displays player\'s rank icon',
+        Function = function()
+            if NameTags.Enabled then
+                NameTags:Toggle()
+                NameTags:Toggle()
+            end
+        end
+    })
+
+    DeviceIcon = NameTags:CreateToggle({
+        Name = 'Device Icon',
+        Tooltip = 'Shows device type (Mobile, PC, Controller) next to rank',
         Function = function()
             if NameTags.Enabled then
                 NameTags:Toggle()
