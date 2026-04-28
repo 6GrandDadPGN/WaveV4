@@ -9703,9 +9703,10 @@ run(function()
             if Teammates.Enabled and (not ent.Targetable) and (not ent.Friend) and not (ent.Player and isTeammate(ent.Player)) then return end
             Strings[ent] = ent.Player and whitelist:tag(ent.Player, true) .. (DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 
-            if Health.Enabled then
-                Strings[ent] = Strings[ent] .. ' ' .. math_round(ent.Health)
-            end
+           if Health.Enabled then
+				local healthColor = Color3.fromHSV(math.clamp(ent.Health / ent.MaxHealth, 0, 1) / 2.5, 0.89, 0.75)
+				Strings[ent] = Strings[ent]..' <font color="rgb('..tostring(math.floor(healthColor.R * 255))..','..tostring(math.floor(healthColor.G * 255))..','..tostring(math.floor(healthColor.B * 255))..')">'..math.round(ent.Health)..'</font>'
+			end
 
             if Distance.Enabled then
                 Strings[ent] = '[%s] ' .. Strings[ent]
@@ -9918,8 +9919,8 @@ run(function()
             Strings[ent] = ent.Player and whitelist:tag(ent.Player, true) .. (DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 
             if Health.Enabled then
-                Strings[ent] = Strings[ent] .. ' ' .. math_round(ent.Health)
-            end
+				Strings[ent] = Strings[ent]..' '..math.round(ent.Health)
+			end
 
             if Distance.Enabled then
                 Strings[ent] = '[%s] ' .. Strings[ent]
@@ -9981,21 +9982,6 @@ run(function()
         end
     }
 
-    local function getHealthColor(health, maxHealth)
-        local pct = maxHealth and maxHealth > 0 and (health / maxHealth * 100) or health
-        if pct >= 80 then
-            return '#00AA00'
-        elseif pct >= 60 then
-            return '#55FF55'
-        elseif pct >= 40 then
-            return '#FFFF00'
-        elseif pct >= 20 then
-            return '#FF8800'
-        else
-            return '#FF3333'
-        end
-    end
-
     local Updated = {
         Normal = function(ent)
             local nametag = Reference[ent]
@@ -10009,9 +9995,9 @@ run(function()
             Strings[ent] = ent.Player and whitelist:tag(ent.Player, true) .. (DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 
             if Health.Enabled then
-                local hCol = getHealthColor(ent.Health, ent.MaxHealth)
-                Strings[ent] = Strings[ent] .. ' <font color="' .. hCol .. '">' .. math_round(ent.Health) .. '</font>'
-            end
+					local healthColor = Color3.fromHSV(math.clamp(ent.Health / ent.MaxHealth, 0, 1) / 2.5, 0.89, 0.75)
+					Strings[ent] = Strings[ent]..' <font color="rgb('..tostring(math.floor(healthColor.R * 255))..','..tostring(math.floor(healthColor.G * 255))..','..tostring(math.floor(healthColor.B * 255))..')">'..math.round(ent.Health)..'</font>'
+				end
 
             if Distance.Enabled then
                 Strings[ent] = '[%s] ' .. Strings[ent]
@@ -10059,9 +10045,8 @@ run(function()
                 Strings[ent] = ent.Player and whitelist:tag(ent.Player, true) .. (DisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name) or ent.Character.Name
 
                 if Health.Enabled then
-                    local hCol = getHealthColor(ent.Health, ent.MaxHealth)
-                    Strings[ent] = Strings[ent] .. ' <font color="' .. hCol .. '">' .. math_round(ent.Health) .. '</font>'
-                end
+					Strings[ent] = Strings[ent]..' '..math.round(ent.Health)
+				end
 
                 if Distance.Enabled then
                     Strings[ent] = '[%s] ' .. Strings[ent]
