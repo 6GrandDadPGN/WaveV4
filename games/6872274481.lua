@@ -15722,6 +15722,22 @@ run(function()
 end)
 
 run(function()
+	local HostPanel = {}
+	GetHost = vape.Categories.Render:CreateModule({
+		Name = "HostPanel",
+		Alias = {'ClientSided','CS'},
+		Tooltip = "this module is only for show. None of the settings will work.",
+		Function = function(callback) 
+			if callback then
+				lplr:SetAttribute("CustomMatchRole", "host")
+			else
+				lplr:SetAttribute("CustomMatchRole", nil)
+			end	
+		end
+	})
+end)
+
+run(function()
     local EAW
 	local Methods 
 	local hiding = true
