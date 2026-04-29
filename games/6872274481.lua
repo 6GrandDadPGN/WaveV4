@@ -18482,37 +18482,45 @@ run(function()
 end)
 
 run(function()
-    local GuiLibrary = shared.GuiLibrary
-    local vapeEvents = shared.vapeEvents
-    local lplr = game:GetService("Players").LocalPlayer
+    local AutoLobby
+    local Delay
     
+    local function TeleportToLobby()
+        if lobby then 
+            lobby() 
+        else
+            local lobbyRemote = game:GetService("ReplicatedStorage"):FindFirstChild("events-@easy-games/lobby:shared/event/lobby-events@getEvents")
+            if lobbyRemote then
+                lobbyRemote.use_ability:FireServer("lobby")
+            end
+        end
+    end
+
     AutoLobby = vape.Categories.AltFarm:CreateModule({
         Name = 'AutoLobby',
+        Tooltip = 'Auto teleports to lobby after winning a match',
         Function = function(callback)
             if callback then
-                local connection = vapeEvents.MatchEndEvent.Event:Connect(function(winTable)
-                    local myTeam = bedwars.Store:getState().Game.myTeam
-                    if (myTeam and myTeam.id == winTable.winningTeamId) or lplr.Neutral then
+                AutoLobby:Clean(vapeEvents.MatchEndEvent.Event:Connect(function(winTable)
+                    local myTeam = (bedwars.Store:getState().Game.myTeam or {})
+                    if myTeam.id == winTable.winningTeamId or lplr.Neutral then
                         task.wait(Delay.Value)
-                        if lobby then 
-                            lobby() 
-                        else
-                            game:GetService("ReplicatedStorage"):FindFirstChild("events-@easy-games/lobby:shared/event/lobby-events@getEvents").use_ability:FireServer("lobby")
-                        end
+                        TeleportToLobby()
                     end
-                end)
-                AutoLobby:Clean(connection)
+                end))
             end
-        end,
-        Tooltip = 'Auto teleports to lobby after winning a match'
+        end
     })
-    
-    local Delay = AutoLobby:CreateSlider({
+
+    Delay = AutoLobby:CreateSlider({
         Name = 'Delay',
         Min = 0,
         Max = 10,
         Default = 3,
-        Function = function() end
+        Decimal = 10,
+        Suffix = function(val)
+            return val == 1 and 'second' or 'seconds'
+        end
     })
 end)
 
