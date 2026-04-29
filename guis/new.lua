@@ -5882,21 +5882,6 @@ mainapi.MultiKeybind = general:CreateToggle({
 		end
 	end
 })
-mainapi.HoldKeyBind = general:CreateToggle({
-	Name = 'Enable Hold-Keybinding',
-	Tooltip = 'Allows keys to be hold to a module',
-	Function = function(v)
-		if v then
-			pcall(function()
-				mainapi.HoldKeyBind.Name = 'Disable Hold-Keybinding'
-			end)
-		else
-			pcall(function()
-				mainapi.HoldKeyBind.Name = 'Enable Hold-Keybinding'
-			end)
-		end
-	end
-})
 mainapi.AutoTeleport = general:CreateToggle({
 	Name = 'Auto Execute',
 	Default = true,
