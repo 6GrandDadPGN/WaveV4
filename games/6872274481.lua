@@ -12213,21 +12213,14 @@ run(function()
     local Delay
 
     local function lobby()
-        TeleportService:Teleport(game.PlaceId, lplr, TeleportService:GetLocalPlayerTeleportData())
+        TeleportService:Teleport(6872265039, lplr)
     end
 
-    AutoLobby = vape.Categories.AltFarm:CreateModule({
+    AutoLobby = vape.Categories.Utility:CreateModule({
         Name = 'AutoLobby',
         Function = function(callback)
             if callback then
                 AutoLobby:Clean(vapeEvents.MatchEndEvent.Event:Connect(function(winTable)
-                    print("Match ended! winTable:", winTable)
-                    print("winningTeamId:", winTable and winTable.winningTeamId)
-                    
-                    local myTeam = bedwars.Store:getState().Game.myTeam or {}
-                    print("myTeam.id:", myTeam.id)
-                    
-                    -- Try teleporting regardless of win condition to test
                     task.wait(Delay.Value)
                     lobby()
                 end))
