@@ -198,7 +198,7 @@ local QueueTypes
 	AG = vape.Categories.AltFarm:CreateModule({
 		Name = "AccountGrinding",
 		Function = function(callback)
-			if QueueTypes.Value == "duels" then 
+			if QueueTypes.Value == "Duels" then 
 				bedwars.QueueController:joinQueue('bedwars_duels')
 			elseif QueueTypes.Value == "1v1s" then 
 				bedwars.QueueController:joinQueue('winstreak_1v1')
@@ -208,7 +208,7 @@ local QueueTypes
 	})
     QueueTypes = AG:CreateDropdown({
         Name = "Type",
-        List = {'duels', '1v1s'},
+        List = {'Duels', '1v1s'},
     })
 
 end)
