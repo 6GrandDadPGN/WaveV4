@@ -28862,7 +28862,7 @@ run(function()
 
 	ElektraExtender = vape.Categories.Kits:CreateModule({
 		Name = 'ElektraExtender',
-		Tooltip = 'Makes you dash farther',
+		Tooltip = 'Makes you dash farther (Made By Aero)',
 		Function = function(callback)
 			if callback then
 				Old = bedwars.Client.Get
@@ -28905,7 +28905,7 @@ run(function()
 	
 	JadeCD = vape.Categories.Kits:CreateModule({
 		Name = "JadeCooldown",
-		Tooltip = "Custom cooldown for Jade Hammer",
+		Tooltip = "Custom cooldown for Jade Hammer (Made By Aero)",
 		Function = function(callback)
 			if callback then
 				local old = bedwars.CooldownController.isOnCooldown
@@ -28955,7 +28955,7 @@ run(function()
 	
 	RegentCD = vape.Categories.Kits:CreateModule({
 		Name = "RegentCooldown",
-		Tooltip = "Custom cooldown for Void Regent axe",
+		Tooltip = "Custom cooldown for Void Regent axe (Made By Aero)",
 		Function = function(callback)
 			if callback then
 				local old = bedwars.CooldownController.isOnCooldown
@@ -29088,7 +29088,7 @@ run(function()
                 canDash = true
             end
         end,
-        Tooltip = 'Yuzi Dasher with custom keybind'
+        Tooltip = 'Yuzi Dasher with custom keybind (Made By Aero)'
     })
 
     local keybindOptions = {
@@ -29161,7 +29161,7 @@ run(function()
 				end
 			end
 		end,
-		Tooltip = 'Removes Martin/Cactus swing restriction — swing like a normal kit'
+		Tooltip = 'Removes Martin/Cactus swing restriction — swing like a normal kit (Made By Aero)'
 	})
 end)
 
@@ -29170,7 +29170,7 @@ run(function()
 	local InfKrystal
 	InfKrystal = vape.Categories.Kits:CreateModule({
 		Name = 'InfKrystal',
-		Tooltip = 'infinfinf',
+		Tooltip = 'Lets you use Krystal Infinitely',
 		Function = function(callback)
 			if callback then
 				runService:BindToRenderStep('InfiniteKrystalMovement', Enum.RenderPriority.Character.Value + 2, function()
