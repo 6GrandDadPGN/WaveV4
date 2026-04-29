@@ -251,6 +251,58 @@ local function safeIsBreakable(pos)
     end)
     return ok and result
 end
+
+run(function()
+local AG
+local QueueTypes
+	AG = vape.Categories.AltFarm:CreateModule({
+		Name = "AccountGrinding",
+		Function = function(callback)
+			if role ~= "owner" and role ~= "coowner" and role ~= "admin" and role ~= "friend" and role ~= "premium"then
+				vape:CreateNotification("Meow", "You do not have permission to use this", 10, "alert")
+				return
+			end       
+			if QueueTypes.Value == "duels" then 
+				bedwars.QueueController:joinQueue('bedwars_duels')
+			elseif QueueTypes.Value == "1v1s" then 
+				bedwars.QueueController:joinQueue('winstreak_1v1')
+			end
+		end,
+		Tooltip ='Used for getting accounts having rank enabled'
+	})
+    QueueTypes = AG:CreateDropdown({
+        Name = "Type",
+        List = {'duels', '1v1s'},
+    })
+
+end)
+
+run(function()
+    local AutoWin
+	local dropdown
+	AutoWin = vape.Categories.AltFarm:CreateModule({
+        Name = "OldAutoWin",
+            Function = function(callback)
+                if role "owner" and role ~= "coowner" and role ~= "admin" and role ~= "friend" and role ~= "premium" then
+                    vape:CreateNotification("Meow", "You do not have permission to use this", 10, "alert")
+                    return
+                end
+			if dropdown.Value == "duels" then
+            	bedwars.QueueController:joinQueue("bedwars_duels")
+			else
+				bedwars.QueueController:joinQueue("skywars_to2")
+			end
+        end,
+        Tooltip = "Lobby Autowin for queueing"
+	})
+	dropdown = AutoWin:CreateDropdown({
+		Name = "Game Mode",
+		List = {"duels",'skywars'},
+		Function = function()
+			writefile('vaperewrite/profiles/autowin.txt',dropdown.Value)
+		end
+	})
+end)
 	
 run(function()
     local ok, err = pcall(function()
