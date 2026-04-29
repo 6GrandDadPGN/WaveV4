@@ -18482,43 +18482,6 @@ run(function()
 end)
 
 run(function()
-    local AutoLobby
-    local Delay
-    local lplr = game.Players.LocalPlayer
-
-    AutoLobby = vape.Categories.AltFarm:CreateModule({
-        Name = 'AutoLobby',
-        Function = function(callback)
-            if callback then
-                AutoLobby:Clean(vapeEvents.MatchEndEvent.Event:Connect(function(winTable)
-                    local state = bedwars.Store and bedwars.Store:getState()
-                    local myTeam = state and state.Game and state.Game.myTeam
-
-                    if myTeam and myTeam.id == winTable.winningTeamId or lplr.Neutral then
-                        task.wait(Delay.Value)
-
-                        -- Replace this with correct teleport
-                        bedwars.ClientHandler:Get("TeleportToLobby"):SendToServer()
-                    end
-                end))
-            end
-        end,
-        Tooltip = 'Auto teleports to lobby after winning a match'
-    })
-
-    Delay = AutoLobby:CreateSlider({
-        Name = 'Delay',
-        Min = 0,
-        Max = 10,
-        Default = 3,
-        Decimal = 10,
-        Suffix = function(val)
-            return val == 1 and 'second' or 'seconds'
-        end
-    })
-end)
-
-run(function()
     local MetalDetector
     local CollectionToggle
     local LimitToItem
