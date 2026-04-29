@@ -29170,7 +29170,7 @@ run(function()
 	local InfKrystal
 	InfKrystal = vape.Categories.Kits:CreateModule({
 		Name = 'InfKrystal',
-		Tooltip = 'Lets you use Krystal Infinitely',
+		Tooltip = 'Lets you use Krystal Infinitely (Made By Aero)',
 		Function = function(callback)
 			if callback then
 				runService:BindToRenderStep('InfiniteKrystalMovement', Enum.RenderPriority.Character.Value + 2, function()
