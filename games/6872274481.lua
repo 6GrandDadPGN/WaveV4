@@ -12188,6 +12188,25 @@ run(function()
 	})
 end)
 
+run(function() 
+    local MatchHistory
+    
+    MatchHistory = vape.Categories.AltFarm:CreateModule({
+        Name = "MatchHistory",
+		Alias = {'ResetHistory','Clear Match History','Reset History','ClearMatchHistory','History'},
+        Tooltip = "Resets your match history",
+        Function = function(callback)    
+            if callback then 
+                MatchHistory:Toggle(false)
+                local TeleportService = game:GetService("TeleportService")
+                local data = TeleportService:GetLocalPlayerTeleportData()
+                MatchHistory:Clean(TeleportService:Teleport(game.PlaceId, lplr, data))
+            end
+        end,
+    }) 
+end)
+
+
 run(function()
     local anim
     local asset
@@ -15948,7 +15967,7 @@ run(function()
 		end)
 	end
 
-    EAW = vape.Categories.Blatant:CreateModule({
+    EAW = vape.Categories.AltFarm:CreateModule({
 		Name = "AutoWin",
 		Tooltip = 'must have elektra to use this (made by soryed)',
 		IsPrem = true,
@@ -18982,6 +19001,48 @@ run(function()
 				table.clear(originalNametags)
 			end
 		end,
+	})
+end)
+
+run(function()
+	local AEGT
+	local e
+	local function Reset()
+		if #playersService:GetChildren() == 1 then return end
+		local TeleportService = game:GetService("TeleportService")
+		local data = TeleportService:GetLocalPlayerTeleportData()
+		AEGT:Clean(TeleportService:Teleport(game.PlaceId, lplr, data))
+	end
+	AEGT = vape.Categories.AltFarm:CreateModule({
+		Name = 'AutoEmptyGameTP',
+		Function = function(callback)
+
+			if callback then
+				if E.Enabled then
+					AEGT:Clean(vapeEvents.EntityDeathEvent.Event:Connect(function(deathTable)
+						if deathTable.finalKill and deathTable.entityInstance == lplr.Character and isEveryoneDead() and store.matchState ~= 2 then
+							Reset()
+						end
+					end))
+					AEGT:Clean(vapeEvents.MatchEndEvent.Event:Connect(Reset))
+				else
+                    if #playersService:GetChildren() > 1 then
+                        vape:CreateNotification("AutoEmptyGameTP", "Teleporting to Empty Game!", 6)
+                        task.wait((6 / 3.335))
+						Reset()
+					end
+				end
+			else
+				return
+			end
+		end,
+		Tooltip = 'Makes you automatically TP to a empty game'
+	})
+	E = AEGT:CreateToggle({
+		Name = "Game Ended",
+		Default = true,
+				Visible = true,
+		Tooltip = "Makes you TP whenever you win/lose a match causing you to reset the history"
 	})
 end)
 
