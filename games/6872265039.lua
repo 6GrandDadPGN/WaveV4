@@ -276,33 +276,6 @@ local QueueTypes
     })
 
 end)
-
-run(function()
-    local AutoWin
-	local dropdown
-	AutoWin = vape.Categories.AltFarm:CreateModule({
-        Name = "OldAutoWin",
-            Function = function(callback)
-                if role "owner" and role ~= "coowner" and role ~= "admin" and role ~= "friend" and role ~= "premium" then
-                    vape:CreateNotification("Meow", "You do not have permission to use this", 10, "alert")
-                    return
-                end
-			if dropdown.Value == "duels" then
-            	bedwars.QueueController:joinQueue("bedwars_duels")
-			else
-				bedwars.QueueController:joinQueue("skywars_to2")
-			end
-        end,
-        Tooltip = "Lobby Autowin for queueing"
-	})
-	dropdown = AutoWin:CreateDropdown({
-		Name = "Game Mode",
-		List = {"duels",'skywars'},
-		Function = function()
-			writefile('vaperewrite/profiles/autowin.txt',dropdown.Value)
-		end
-	})
-end)
 	
 run(function()
     local ok, err = pcall(function()
