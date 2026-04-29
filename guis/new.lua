@@ -5772,7 +5772,7 @@ mainapi:CreateCategory({
 mainapi:CreateCategory({
 	Name = 'AltFarm',
 	Icon = getcustomasset('vaperewrite/assets/new/af.png'),
-	Size = UDim2.fromOffset(17, 17)
+	Size = UDim2.fromOffset(20, 20)
 })
 mainapi.Categories.Main:CreateDivider('misc')
 
