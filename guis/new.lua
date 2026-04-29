@@ -5869,18 +5869,7 @@ mainapi.Categories.Main:CreateSettingsDivider()
 local general = mainapi.Categories.Main:CreateSettingsPane({Name = 'General'})
 mainapi.MultiKeybind = general:CreateToggle({
 	Name = 'Enable Multi-Keybinding',
-	Tooltip = 'Allows multiple keys to be bound to a module (eg. G + H) (Made By Soryed)',
-	Function = function(v)
-		if v then
-			pcall(function()
-				mainapi.MultiKeybind.Name = 'Disable Multi-Keybinding'
-			end)
-		else
-			pcall(function()
-				mainapi.MultiKeybind.Name = 'Enable Multi-Keybinding'
-			end)
-		end
-	end
+	Tooltip = 'Allows multiple keys to be bound to a module (eg. G + H)'
 })
 mainapi.AutoTeleport = general:CreateToggle({
 	Name = 'Auto Execute',
@@ -5917,7 +5906,7 @@ general:CreateButton({
 		if shared.VapeDeveloper then
 			loadstring(readfile('vaperewrite/loader.lua'), 'loader')()
 		else
-			loadstring(game:HttpGet('https://raw.githubusercontent.com/wrj80z/wrj80zSUP/'..readfile('vaperewrite/profiles/commit.txt')..'/loader.lua', true))()
+			loadstring(game:HttpGet('https://raw.githubusercontent.com/6GrandDadPGN/MeowV4/'..readfile('vaperewrite/profiles/commit.txt')..'/loader.lua', true))()
 		end
 	end,
 	Tooltip = 'Reloads vape for debugging purposes'
