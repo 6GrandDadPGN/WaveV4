@@ -18484,32 +18484,26 @@ end)
 run(function()
     local AutoLobby
     local Delay
-    
-    local function TeleportToLobby()
-        if lobby then 
-            lobby() 
-        else
-            local lobbyRemote = game:GetService("ReplicatedStorage"):FindFirstChild("events-@easy-games/lobby:shared/event/lobby-events@getEvents")
-            if lobbyRemote then
-                lobbyRemote.use_ability:FireServer("lobby")
-            end
-        end
-    end
+    local lplr = game.Players.LocalPlayer
 
-    AutoLobby = vape.Categories.AltFarm:CreateModule({
+    AutoLobby = vape.Categories.Utility:CreateModule({
         Name = 'AutoLobby',
-        Tooltip = 'Auto teleports to lobby after winning a match',
         Function = function(callback)
             if callback then
                 AutoLobby:Clean(vapeEvents.MatchEndEvent.Event:Connect(function(winTable)
-                    local myTeam = (bedwars.Store:getState().Game.myTeam or {})
-                    if myTeam.id == winTable.winningTeamId or lplr.Neutral then
+                    local state = bedwars.Store and bedwars.Store:getState()
+                    local myTeam = state and state.Game and state.Game.myTeam
+
+                    if myTeam and myTeam.id == winTable.winningTeamId or lplr.Neutral then
                         task.wait(Delay.Value)
-                        TeleportToLobby()
+
+                        -- Replace this with correct teleport
+                        bedwars.ClientHandler:Get("TeleportToLobby"):SendToServer()
                     end
                 end))
             end
-        end
+        end,
+        Tooltip = 'Auto teleports to lobby after winning a match'
     })
 
     Delay = AutoLobby:CreateSlider({
