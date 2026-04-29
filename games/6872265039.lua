@@ -191,6 +191,34 @@ run(function()
 	})
 end)
 
+		
+run(function()
+local AG
+local QueueTypes
+	AG = vape.Categories.AltFarm:CreateModule({
+		Name = "AccountGrinding",
+		Function = function(callback)
+			if role ~= "owner" and role ~= "coowner" and role ~= "admin" and role ~= "friend" and role ~= "premium"then
+				vape:CreateNotification("Onyx", "You do not have permission to use this", 10, "alert")
+				return
+			end       
+			if QueueTypes.Value == "duels" then 
+				bedwars.QueueController:joinQueue('bedwars_duels')
+			elseif QueueTypes.Value == "1v1s" then 
+				bedwars.QueueController:joinQueue('winstreak_1v1')
+			end
+		end,
+		Tooltip ='Used for getting accounts having rank enabled'
+	})
+    QueueTypes = AG:CreateDropdown({
+        Name = "Type",
+        List = {'duels', '1v1s'},
+    })
+
+end)
+			
+
+			
 run(function()
 	local Headless
 	local faceTransparencyBackup = nil
