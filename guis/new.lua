@@ -94,7 +94,6 @@ task.spawn(function()
 end)
 
 local getcustomassets = {
-	['vaperewrite/assets/new/guivapev2.png'] = 'rbxassetid://106492986109828',
 	['vaperewrite/assets/new/add.png'] = 'rbxassetid://14368300605',
 	['vaperewrite/assets/new/alert.png'] = 'rbxassetid://14368301329',
 	['vaperewrite/assets/new/allowedicon.png'] = 'rbxassetid://14368302000',
@@ -2601,7 +2600,6 @@ function mainapi:CreateGUI()
 	logo.Size = UDim2.fromOffset(113, 68)
 	logo.Position = UDim2.fromOffset(11, -10)
 	logo.BackgroundTransparency = 1
-	logo.Image = getcustomasset('vaperewrite/assets/new/guivapev2.png')
 	logo.ImageColor3 = select(3, uipallet.Main:ToHSV()) > 0.5 and uipallet.Text or Color3.new(1, 1, 1)
 	logo.Parent = window
 	local logov4 = Instance.new('ImageLabel')
