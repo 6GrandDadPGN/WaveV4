@@ -60,7 +60,6 @@ local uipallet = {
 
 local getcustomassets = {
 	['vaperewrite/assets/new/add.png'] = 'rbxassetid://14368300605',
-	['vaperewrite/assets/new/af.png'] = 'rbxassetid://132399939061065',
 	['vaperewrite/assets/new/alert.png'] = 'rbxassetid://14368301329',
 	['vaperewrite/assets/new/allowedicon.png'] = 'rbxassetid://14368302000',
 	['vaperewrite/assets/new/allowedtab.png'] = 'rbxassetid://14368302875',
@@ -5768,12 +5767,6 @@ mainapi:CreateCategory({
 	Name = 'Kits',
 	Icon = getcustomasset('vaperewrite/assets/new/targetnpc1.png'),
 	Size = UDim2.fromOffset(14, 14)
-})
-mainapi:CreateCategory({
-	Name = 'AltFarm',
-	Icon = getcustomasset('vaperewrite/assets/new/af.png'),
-	Size = UDim2.fromOffset(20, 20)
-	Position = UDim2.fromOffset(10,10)
 })
 mainapi.Categories.Main:CreateDivider('misc')
 
