@@ -15723,7 +15723,7 @@ end)
 
 run(function()
 	local HostPanel = {}
-	GetHost = vape.Categories.Render:CreateModule({
+	GetHost = vape.Categories.Legit:CreateModule({
 		Name = "HostPanel",
 		Alias = {'ClientSided','CS'},
 		Tooltip = "this module is only for show. None of the settings will work.",
