@@ -18485,7 +18485,7 @@ run(function()
     local AutoLobby
     local Delay
     
-    AutoLobby = vape.Categories.Utility:CreateModule({
+    AutoLobby = vape.Categories.AltFarm:CreateModule({
         Name = 'AutoLobby',
         Function = function(callback)
             if callback then
