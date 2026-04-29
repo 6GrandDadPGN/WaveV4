@@ -18482,6 +18482,37 @@ run(function()
 end)
 
 run(function()
+    local AutoLobby
+    local Delay
+    
+    AutoLobby = vape.Categories.Utility:CreateModule({
+        Name = 'AutoLobby',
+        Function = function(callback)
+            if callback then
+                AutoLobby:Clean(vapeEvents.MatchEndEvent.Event:Connect(function(winTable)
+                    if (bedwars.Store:getState().Game.myTeam or {}).id == winTable.winningTeamId or lplr.Neutral then
+                        task.wait(Delay.Value)
+                        lobby()
+                    end
+                end))
+            end
+        end,
+        Tooltip = 'Auto teleports to lobby after winning a match'
+    })
+    
+    Delay = AutoLobby:CreateSlider({
+        Name = 'Delay',
+        Min = 0,
+        Max = 10,
+        Default = 3,
+        Decimal = 10,
+        Suffix = function(val)
+            return val == 1 and 'second' or 'seconds'
+        end
+    })
+end)
+
+run(function()
     local MetalDetector
     local CollectionToggle
     local LimitToItem
