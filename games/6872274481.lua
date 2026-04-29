@@ -12206,6 +12206,28 @@ run(function()
     }) 
 end)
 
+run(function()
+    local AutoWin
+	local dropdown
+	AutoWin = vape.Categories.AltFarm:CreateModule({
+        Name = "AutoWin",
+            Function = function(callback)
+			if dropdown.Value == "duels" then
+            	bedwars.QueueController:joinQueue("bedwars_duels")
+			else
+				bedwars.QueueController:joinQueue("skywars_to2")
+			end
+        end,
+        Tooltip = "Lobby Autowin for queueing"
+	})
+	dropdown = AutoWin:CreateDropdown({
+		Name = "Game Mode",
+		List = {"duels",'skywars'},
+		Function = function()
+			writefile('vaperewrite/profiles/autowin.txt',dropdown.Value)
+		end
+	})
+end)
 
 run(function()
     local anim
