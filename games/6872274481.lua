@@ -12221,11 +12221,15 @@ run(function()
         Function = function(callback)
             if callback then
                 AutoLobby:Clean(vapeEvents.MatchEndEvent.Event:Connect(function(winTable)
+                    print("Match ended! winTable:", winTable)
+                    print("winningTeamId:", winTable and winTable.winningTeamId)
+                    
                     local myTeam = bedwars.Store:getState().Game.myTeam or {}
-                    if myTeam.id == winTable.winningTeamId then
-                        task.wait(Delay.Value)
-                        lobby()
-                    end
+                    print("myTeam.id:", myTeam.id)
+                    
+                    -- Try teleporting regardless of win condition to test
+                    task.wait(Delay.Value)
+                    lobby()
                 end))
             end
         end,
