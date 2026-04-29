@@ -15975,16 +15975,13 @@ run(function()
 			if callback then
 					local tips = {
 						"you can always be afk while you farm...",
-						"this is a tip lol...",
+						"hi lol...",
 						'you can always sleep while afk farming...',
 						'you have 2 other methods for auto farm...',
 						'this is the most undetected farming and best method out here...',
 						'note to bedwars dev/mods FUCK YOU...',
-						'this is the improved autowin method',
-						'owner of shade\'s executor is a fucking skid LMFAO',
-						'nothing lmfao',
-						'note to ghost the ac mod: you have a mental disorder for banning me retard',
-						'the devs still havent patched elektra tp so keep abusing it'
+						'nothing lmao',
+						'note to all ac mods: go kill yourselves',
 					}
 					local lastTip
 					local prefix = "tip: "
