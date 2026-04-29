@@ -29978,7 +29978,7 @@ run(function()
 
     BetterDavey = vape.Categories.Kits:CreateModule({
         Name = "BetterDavey",
-        Tooltip = "makes u look better with davey makes u play like me(i main davey everyday kush)",
+        Tooltip = "Makes you look better while playing Davey.",
 		Function = function(callback)
 			local worldFolder = getWorldFolder()
 			if not worldFolder then return end
