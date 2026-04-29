@@ -12216,7 +12216,7 @@ run(function()
         -- game:GetService("TeleportService"):Teleport(YOUR_LOBBY_PLACE_ID, lplr)
     end
 
-    AutoLobby = vape.Categories.Utility:CreateModule({
+    AutoLobby = vape.Categories.AltFarm:CreateModule({
         Name = 'AutoLobby',
         Function = function(callback)
             if callback then
