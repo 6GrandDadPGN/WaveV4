@@ -12207,26 +12207,41 @@ run(function()
 end)
 
 run(function()
-    local AutoWin
-	local dropdown
-	AutoWin = vape.Categories.AltFarm:CreateModule({
-        Name = "AutoWin",
-            Function = function(callback)
-			if dropdown.Value == "duels" then
-            	bedwars.QueueController:joinQueue("bedwars_duels")
-			else
-				bedwars.QueueController:joinQueue("skywars_to2")
-			end
+    local lplr = game:GetService("Players").LocalPlayer
+    local AutoLobby
+    local Delay
+
+    local function lobby()
+        -- Fill this in with your teleport logic, e.g.:
+        -- game:GetService("TeleportService"):Teleport(YOUR_LOBBY_PLACE_ID, lplr)
+    end
+
+    AutoLobby = vape.Categories.Utility:CreateModule({
+        Name = 'AutoLobby',
+        Function = function(callback)
+            if callback then
+                AutoLobby:Clean(vapeEvents.MatchEndEvent.Event:Connect(function(winTable)
+                    local myTeam = bedwars.Store:getState().Game.myTeam or {}
+                    if myTeam.id == winTable.winningTeamId then
+                        task.wait(Delay.Value)
+                        lobby()
+                    end
+                end))
+            end
         end,
-        Tooltip = "Lobby Autowin for queueing"
-	})
-	dropdown = AutoWin:CreateDropdown({
-		Name = "Game Mode",
-		List = {"duels",'skywars'},
-		Function = function()
-			writefile('vaperewrite/profiles/autowin.txt',dropdown.Value)
-		end
-	})
+        Tooltip = 'Auto teleports to lobby after winning a match'
+    })
+
+    Delay = AutoLobby:CreateSlider({
+        Name = 'Delay',
+        Min = 0,
+        Max = 10,
+        Default = 3,
+        Decimal = 1,
+        Suffix = function(val)
+            return val == 1 and 'second' or 'seconds'
+        end
+    })
 end)
 
 run(function()
