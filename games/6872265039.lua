@@ -251,7 +251,7 @@ local function safeIsBreakable(pos)
     end)
     return ok and result
 end
-
+	
 run(function()
     local ok, err = pcall(function()
         repeat task.wait() until vape and vape.Categories and vape.Categories.Render
@@ -927,7 +927,7 @@ run(function()
 			lastRefresh = os.time(),
 			users = users,
 			leaderboardPosition = CUSTOM_POSITION,
-			localStatValue = rankDisplay and rankDisplay.rankStatValue or CUSTOM_STAT,  -- division progress
+			localStatValue = rankDisplay and rankDisplay.rankStatValue or CUSTOM_STAT,  -- division progress DABOOOO
 		}
 		if rankDisplay then
 			newData.localStatRank = rankDisplay
@@ -958,7 +958,7 @@ run(function()
 		Function = function(enabled)
 			if enabled then doDispatch() else doRevert() end
 		end,
-		Tooltip = "Spoof your leaderboard stats (client-sided only / made by aero)"
+		Tooltip = "Spoof your leaderboard stats (client-sided only)"
 	})
 
 	LeaderboardSpoof:CreateDropdown({
@@ -1442,7 +1442,7 @@ run(function()
 		Function = function(callback)
 			if callback then ppStartLoop() else ppCleanup() end
 		end,
-		Tooltip = "Spoofs rank, RP bar color and leaderboard rank in your profile UI (client sided / made by aero)"
+		Tooltip = "Spoofs rank, RP bar color and leaderboard rank in your profile UI (client sided)"
 	})
 
 	PPSRankDropdown = PlayerProfileSpoof:CreateDropdown({
@@ -1577,7 +1577,7 @@ run(function()
                 restoreWins()
             end
         end,
-        Tooltip = "Modify your wins in leaderstats (client‑sided / made by aero)"
+        Tooltip = "Modify your wins in leaderstats (client‑sided)"
     })
 
     SetPlayerWins:CreateSlider({
@@ -1606,7 +1606,7 @@ run(function()
 
     WinstreakSpoofer = vape.Categories.Minigames:CreateModule({
         Name = 'WinstreakSpoofer',
-        Tooltip = 'Modifies/Adds your winstreak (client‑sided / made by aero)',
+        Tooltip = 'Modifies/Adds your winstreak (client‑sided)',
         Function = function(callback)
             if callback then
                 if not entitylib.isAlive then return end
