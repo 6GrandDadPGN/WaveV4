@@ -18505,7 +18505,7 @@ run(function()
 				return
 			end
 		end,
-		Tooltip = 'Makes you automatically TP to a empty game( \ni love you soryed for making this😍 )'
+		Tooltip = 'Makes you automatically TP to a empty game(\ni love you soryed for making this😍 )'
 	})
 	E = AEGT:CreateToggle({
 		Name = "Game Ended",
