@@ -18486,7 +18486,7 @@ run(function()
     local vapeEvents = shared.vapeEvents
     local lplr = game:GetService("Players").LocalPlayer
     
-    local AutoLobby = GuiLibrary.ObjectsToGet.UtilityWindow.Api:CreateModule({
+    AutoLobby = vape.Categories.AltFarm:CreateModule({
         Name = 'AutoLobby',
         Function = function(callback)
             if callback then
