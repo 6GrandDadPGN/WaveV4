@@ -12208,15 +12208,15 @@ end)
 
 run(function()
     local lplr = game:GetService("Players").LocalPlayer
+    local TeleportService = game:GetService("TeleportService")
     local AutoLobby
     local Delay
 
     local function lobby()
-        -- Fill this in with your teleport logic, e.g.:
-        -- game:GetService("TeleportService"):Teleport(YOUR_LOBBY_PLACE_ID, lplr)
+        TeleportService:Teleport(game.PlaceId, lplr, TeleportService:GetLocalPlayerTeleportData())
     end
 
-    AutoLobby = vape.Categories.AltFarm:CreateModule({
+    AutoLobby = vape.Categories.Utility:CreateModule({
         Name = 'AutoLobby',
         Function = function(callback)
             if callback then
