@@ -2802,16 +2802,11 @@ run(function()
 	local propertyConnections = {}
 	local customName = "Me"
 
-	local function watchElement(element)
-		if not element:IsA("TextLabel") then return end
-		if element.Name ~= "PlayerName" and element.Name ~= "EntityName" and element.Name ~= "DisplayName" then return end
-		if propertyConnections[element] then return end
-
-		local original = element.Text
-		if not (original:find(lplr.Name, 1, true) or original:find(lplr.DisplayName, 1, true)) then return end
-
-		originalNames[element] = original
-		element.Text = customName
+	local function attachWatcher(element)
+		if propertyConnections[element] then
+			propertyConnections[element]:Disconnect()
+			propertyConnections[element] = nil
+		end
 
 		local ignoreNext = false
 		propertyConnections[element] = element:GetPropertyChangedSignal("Text"):Connect(function()
@@ -2830,15 +2825,17 @@ run(function()
 		end)
 	end
 
-	local function unwatchElement(element)
-		if propertyConnections[element] then
-			propertyConnections[element]:Disconnect()
-			propertyConnections[element] = nil
-		end
-		if originalNames[element] then
-			element.Text = originalNames[element]
-			originalNames[element] = nil
-		end
+	local function watchElement(element)
+		if not element:IsA("TextLabel") then return end
+		if element.Name ~= "PlayerName" and element.Name ~= "EntityName" and element.Name ~= "DisplayName" then return end
+		if propertyConnections[element] then return end
+
+		local original = element.Text
+		if not (original:find(lplr.Name, 1, true) or original:find(lplr.DisplayName, 1, true)) then return end
+
+		originalNames[element] = original
+		element.Text = customName
+		attachWatcher(element)
 	end
 	
 	local function processGui(gui)
@@ -2850,28 +2847,8 @@ run(function()
 	local function refreshAll()
 		for element, _ in originalNames do
 			if element and element.Parent then
-				-- disconnect so the property signal doesnt fight us
-				if propertyConnections[element] then
-					propertyConnections[element]:Disconnect()
-					propertyConnections[element] = nil
-				end
 				element.Text = customName
-				-- re-attach the watcher
-				local ignoreNext = false
-				propertyConnections[element] = element:GetPropertyChangedSignal("Text"):Connect(function()
-					if not StreamProof.Enabled then return end
-					if ignoreNext then
-						ignoreNext = false
-						return
-					end
-					local newText = element.Text
-					if newText == customName then return end
-					if newText:find(lplr.Name, 1, true) or newText:find(lplr.DisplayName, 1, true) then
-						originalNames[element] = newText
-					end
-					ignoreNext = true
-					element.Text = customName
-				end)
+				attachWatcher(element)
 			end
 		end
 	end
