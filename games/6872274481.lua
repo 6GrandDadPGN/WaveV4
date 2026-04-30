@@ -9387,8 +9387,7 @@ run(function()
     local Teammates
     local DistanceCheck
     local DistanceLimit
-    local BhaaHealth
-    local TitanHealth
+    local BossHealth
     local Strings, Sizes, Reference = {}, {}, {}
     local Folder = Instance.new('Folder')
     Folder.Parent = vape.gui
@@ -9493,7 +9492,7 @@ run(function()
     local function buildBaseString(ent)
         if isBhaa(ent) then
             local str = 'BHAA'
-            if BhaaHealth and BhaaHealth.Enabled then
+            if BossHealth and BossHealth.Enabled then
                 str = str .. getBossHealthStr(ent)
             end
             if Distance.Enabled then
@@ -9502,7 +9501,7 @@ run(function()
             return str
         elseif isTitan(ent) then
             local str = 'Titan'
-            if TitanHealth and TitanHealth.Enabled then
+            if BossHealth and BossHealth.Enabled then
                 str = str .. getBossHealthStr(ent)
             end
             if Distance.Enabled then
@@ -9753,7 +9752,7 @@ run(function()
 
             if isBhaa(ent) then
                 Strings[ent] = 'BHAA'
-                if BhaaHealth and BhaaHealth.Enabled then
+                if BossHealth and BossHealth.Enabled then
                     Strings[ent] = Strings[ent] .. ' ' .. math.round(ent.Health) .. '/' .. math.round(ent.MaxHealth)
                 end
                 if Distance.Enabled then
@@ -9762,7 +9761,7 @@ run(function()
                 nametag.Text.Color = color3new(1, 0.4, 0.1)
             elseif isTitan(ent) then
                 Strings[ent] = 'Titan'
-                if TitanHealth and TitanHealth.Enabled then
+                if BossHealth and BossHealth.Enabled then
                     Strings[ent] = Strings[ent] .. ' ' .. math.round(ent.Health) .. '/' .. math.round(ent.MaxHealth)
                 end
                 if Distance.Enabled then
@@ -9900,7 +9899,7 @@ run(function()
 
             if isBhaa(ent) then
                 Strings[ent] = 'BHAA'
-                if BhaaHealth and BhaaHealth.Enabled then
+                if BossHealth and BossHealth.Enabled then
                     Strings[ent] = Strings[ent] .. ' ' .. math.round(ent.Health) .. '/' .. math.round(ent.MaxHealth)
                     nametag.Text.Color = getHealthColor(ent)
                 end
@@ -9912,7 +9911,7 @@ run(function()
                 end
             elseif isTitan(ent) then
                 Strings[ent] = 'Titan'
-                if TitanHealth and TitanHealth.Enabled then
+                if BossHealth and BossHealth.Enabled then
                     Strings[ent] = Strings[ent] .. ' ' .. math.round(ent.Health) .. '/' .. math.round(ent.MaxHealth)
                     nametag.Text.Color = getHealthColor(ent)
                 end
@@ -10018,7 +10017,7 @@ run(function()
 
                 -- Update boss health every frame since it changes frequently
                 if isBhaa(ent) then
-                    if BhaaHealth and BhaaHealth.Enabled then
+                    if BossHealth and BossHealth.Enabled then
                         local str = 'BHAA'
                         local colorStr = getHealthColorStr(ent)
                         str = str .. ' <font color="'..colorStr..'">'..math.round(ent.Health)..'/'..math.round(ent.MaxHealth)..'</font>'
@@ -10034,7 +10033,7 @@ run(function()
                     end
                     continue
                 elseif isTitan(ent) then
-                    if TitanHealth and TitanHealth.Enabled then
+                    if BossHealth and BossHealth.Enabled then
                         local str = 'Titan'
                         local colorStr = getHealthColorStr(ent)
                         str = str .. ' <font color="'..colorStr..'">'..math.round(ent.Health)..'/'..math.round(ent.MaxHealth)..'</font>'
@@ -10137,7 +10136,7 @@ run(function()
                 if skipFrame then continue end
 
                 if isBhaa(ent) then
-                    if BhaaHealth and BhaaHealth.Enabled then
+                    if BossHealth and BossHealth.Enabled then
                         local str = 'BHAA ' .. math.round(ent.Health) .. '/' .. math.round(ent.MaxHealth)
                         if Distance.Enabled then
                             local mag = entitylib.isAlive and math_floor((entitylib.character.RootPart.Position - ent.RootPart.Position).Magnitude) or 0
@@ -10152,7 +10151,7 @@ run(function()
                     nametag.Text.Position = nametag.BG.Position + vector2new(4, 3)
                     continue
                 elseif isTitan(ent) then
-                    if TitanHealth and TitanHealth.Enabled then
+                    if BossHealth and BossHealth.Enabled then
                         local str = 'Titan ' .. math.round(ent.Health) .. '/' .. math.round(ent.MaxHealth)
                         if Distance.Enabled then
                             local mag = entitylib.isAlive and math_floor((entitylib.character.RootPart.Position - ent.RootPart.Position).Magnitude) or 0
@@ -10451,22 +10450,10 @@ run(function()
         end
     })
 
-    BhaaHealth = NameTags:CreateToggle({
-        Name = 'BHAA Health',
+    BossHealth = NameTags:CreateToggle({
+        Name = 'Boss Health',
         Default = true,
-        Tooltip = 'Shows current/max health on BHAA nametag',
-        Function = function()
-            if NameTags.Enabled then
-                NameTags:Toggle()
-                NameTags:Toggle()
-            end
-        end
-    })
-
-    TitanHealth = NameTags:CreateToggle({
-        Name = 'Titan Health',
-        Default = true,
-        Tooltip = 'Shows current/max health on Titan nametag',
+        Tooltip = 'Shows current/max health on BHAA and Titan nametags',
         Function = function()
             if NameTags.Enabled then
                 NameTags:Toggle()
