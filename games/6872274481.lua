@@ -2799,14 +2799,16 @@ run(function()
 	local StreamProof
 	local nametagConnection = nil
 	local customName = "Me"
+	local coreGui = game:GetService("CoreGui")
 
 	local function replaceInElement(element)
 		if not element or not element:IsA("TextLabel") then return end
-		if element.Name ~= "PlayerName" and element.Name ~= "EntityName" and element.Name ~= "DisplayName" then return end
 		local ok, text = pcall(function() return element.Text end)
 		if not ok or type(text) ~= "string" then return end
-		if text ~= customName then
-			pcall(function() element.Text = customName end)
+		if text:find(lplr.Name, 1, true) or text:find(lplr.DisplayName, 1, true) then
+			pcall(function()
+				element.Text = text:gsub(lplr.DisplayName, customName):gsub(lplr.Name, customName)
+			end)
 		end
 	end
 
@@ -2823,28 +2825,13 @@ run(function()
 		Name = 'StreamProof',
 		Function = function(callback)
 			if callback then
-				if not lplr or not lplr.PlayerGui then return end
-
-				StreamProof:Clean(lplr.PlayerGui.ChildAdded:Connect(function(gui)
-					if gui.Name == "TabListScreenGui" or gui.Name == "KillFeedGui" then
-						processGui(gui)
-						StreamProof:Clean(gui.DescendantAdded:Connect(function(descendant)
-							replaceInElement(descendant)
-						end))
-					end
-				end))
-
 				nametagConnection = runService.RenderStepped:Connect(function()
 					if not StreamProof.Enabled then return end
 					pcall(function()
-						if not lplr or not lplr.PlayerGui then return end
+						-- CoreGui scan for TabList and KillFeed
+						processGui(coreGui)
 
-						local tabList = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
-						if tabList then processGui(tabList) end
-
-						local killFeed = lplr.PlayerGui:FindFirstChild("KillFeedGui")
-						if killFeed then processGui(killFeed) end
-
+						-- Nametag on character
 						if lplr.Character then
 							local head = lplr.Character:FindFirstChild("Head")
 							if not head then return end
@@ -2856,7 +2843,9 @@ run(function()
 							if not dn or not dn:IsA("TextLabel") then return end
 							local ok, text = pcall(function() return dn.Text end)
 							if ok and type(text) == "string" and text ~= customName then
-								pcall(function() dn.Text = customName end)
+								if text:find(lplr.Name, 1, true) or text:find(lplr.DisplayName, 1, true) then
+									pcall(function() dn.Text = customName end)
+								end
 							end
 						end
 					end)
@@ -2869,7 +2858,7 @@ run(function()
 				end
 			end
 		end,
-		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag (made by max)'
+		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag'
 	})
 
 	StreamProof:CreateTextBox({
