@@ -8454,7 +8454,7 @@ run(function()
     local old, last = nil, 0
     local charge = 0
     AutoRelease = vape.Categories.Utility:CreateModule({
-        Name = 'Auto Release',
+        Name = 'AutoRelease',
 		Disabled = not canDebug,
         Tooltip = 'Automatically releases ur projectile source when\nat certain charging percentage',
         Function = function(call)
@@ -8615,7 +8615,7 @@ run(function()
 	end
 
 	AutoShoot = vape.Categories.Utility:CreateModule({
-		Name = 'Auto Shoot',
+		Name = 'AutoShoot',
 		Tags = {'updated'},
 		Disabled = not canDebug,
 		Tooltip = 'Automatically swaps to another projectile source while swinging ur sword',
@@ -14871,7 +14871,7 @@ run(function()
 	end
 	
 	BedPlates = vape.Categories.Minigames:CreateModule({
-		Name = 'Bed Plates',
+		Name = 'BedPlates',
 		Function = function(callback)
 			if callback then
 				for _, v in collectionService:GetTagged('bed') do 
