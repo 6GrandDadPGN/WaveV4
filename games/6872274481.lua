@@ -2801,15 +2801,20 @@ run(function()
 	local customName = "Me"
 
 	local function replaceInElement(element)
-		if not element:IsA("TextLabel") then return end
+		if not element or not element:IsA("TextLabel") then return end
 		if element.Name ~= "PlayerName" and element.Name ~= "EntityName" and element.Name ~= "DisplayName" then return end
-		if element.Text ~= customName then
-			element.Text = customName
+		local ok, text = pcall(function() return element.Text end)
+		if not ok or type(text) ~= "string" then return end
+		if text ~= customName then
+			pcall(function() element.Text = customName end)
 		end
 	end
 
 	local function processGui(gui)
-		for _, descendant in pairs(gui:GetDescendants()) do
+		if not gui then return end
+		local ok, descendants = pcall(function() return gui:GetDescendants() end)
+		if not ok then return end
+		for _, descendant in pairs(descendants) do
 			replaceInElement(descendant)
 		end
 	end
@@ -2818,6 +2823,8 @@ run(function()
 		Name = 'StreamProof',
 		Function = function(callback)
 			if callback then
+				if not lplr or not lplr.PlayerGui then return end
+
 				StreamProof:Clean(lplr.PlayerGui.ChildAdded:Connect(function(gui)
 					if gui.Name == "TabListScreenGui" or gui.Name == "KillFeedGui" then
 						processGui(gui)
@@ -2830,6 +2837,8 @@ run(function()
 				nametagConnection = runService.RenderStepped:Connect(function()
 					if not StreamProof.Enabled then return end
 					pcall(function()
+						if not lplr or not lplr.PlayerGui then return end
+
 						local tabList = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
 						if tabList then processGui(tabList) end
 
@@ -2844,8 +2853,10 @@ run(function()
 							local dc = nametag:FindFirstChild("DisplayNameContainer")
 							if not dc then return end
 							local dn = dc:FindFirstChild("DisplayName")
-							if dn and dn:IsA("TextLabel") and dn.Text ~= customName then
-								dn.Text = customName
+							if not dn or not dn:IsA("TextLabel") then return end
+							local ok, text = pcall(function() return dn.Text end)
+							if ok and type(text) == "string" and text ~= customName then
+								pcall(function() dn.Text = customName end)
 							end
 						end
 					end)
