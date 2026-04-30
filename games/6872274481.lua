@@ -2799,7 +2799,7 @@ run(function()
 	local StreamProof
 	local nametagConnection = nil
 	local customName = "Me"
-	local trackedElements = {} -- element -> original real name
+	local trackedElements = {}
 
 	local function trackElement(element)
 		if not element or not element:IsA("TextLabel") then return end
@@ -2814,6 +2814,7 @@ run(function()
 			if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
 				trackedElements[element] = t
 				element.Text = customName
+				print("TRACKED:", element:GetFullName(), "original:", t)
 			end
 		end)
 	end
@@ -2861,30 +2862,22 @@ run(function()
 				nametagConnection = runService.RenderStepped:Connect(function()
 					if not StreamProof.Enabled then return end
 					pcall(function()
-						-- force every tracked element every frame no conditions
 						for element, original in pairs(trackedElements) do
 							if not element or not element.Parent then
 								trackedElements[element] = nil
 							else
 								pcall(function()
-									-- if game reset it to real name, update our stored original
-									local t = element.Text
-									if type(t) == "string" and (t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true)) then
-										trackedElements[element] = t
-									end
 									element.Text = customName
 								end)
 							end
 						end
 
-						-- rescan every frame to catch new elements
 						local tl = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
 						if tl then processGui(tl) end
 
 						local kf = lplr.PlayerGui:FindFirstChild("KillFeedGui")
 						if kf then processGui(kf) end
 
-						-- nametag
 						if lplr.Character then
 							local head = lplr.Character:FindFirstChild("Head")
 							if not head then return end
@@ -2894,9 +2887,7 @@ run(function()
 							if not dc then return end
 							local dn = dc:FindFirstChild("DisplayName")
 							if not dn or not dn:IsA("TextLabel") then return end
-							pcall(function()
-								dn.Text = customName
-							end)
+							pcall(function() dn.Text = customName end)
 						end
 					end)
 				end)
@@ -2906,7 +2897,6 @@ run(function()
 					nametagConnection:Disconnect()
 					nametagConnection = nil
 				end
-				-- restore original names
 				for element, original in pairs(trackedElements) do
 					if element and element.Parent then
 						pcall(function() element.Text = original end)
@@ -2923,6 +2913,7 @@ run(function()
 		Default = 'Me',
 		Placeholder = 'Enter name...',
 		Function = function(value)
+			print("NAME CHANGED TO:", value, "tracked count:", (function() local c=0 for _ in pairs(trackedElements) do c=c+1 end return c end)())
 			customName = (value ~= "" and value) or "Me"
 		end
 	})
