@@ -2808,19 +2808,13 @@ run(function()
 			propertyConnections[element] = nil
 		end
 
-		local ignoreNext = false
 		propertyConnections[element] = element:GetPropertyChangedSignal("Text"):Connect(function()
 			if not StreamProof.Enabled then return end
-			if ignoreNext then
-				ignoreNext = false
-				return
-			end
+			if element.Text == customName then return end
 			local newText = element.Text
-			if newText == customName then return end
 			if newText:find(lplr.Name, 1, true) or newText:find(lplr.DisplayName, 1, true) then
 				originalNames[element] = newText
 			end
-			ignoreNext = true
 			element.Text = customName
 		end)
 	end
@@ -2837,22 +2831,27 @@ run(function()
 		element.Text = customName
 		attachWatcher(element)
 	end
-	
+
 	local function processGui(gui)
-		for _, descendant in gui:GetDescendants() do
+		for _, descendant in pairs(gui:GetDescendants()) do
 			watchElement(descendant)
 		end
 	end
 
 	local function refreshAll()
-		for element, _ in originalNames do
+		local snapshot = {}
+		for element, original in pairs(originalNames) do
+			table.insert(snapshot, {element = element, original = original})
+		end
+		for _, data in pairs(snapshot) do
+			local element = data.element
 			if element and element.Parent then
 				element.Text = customName
 				attachWatcher(element)
 			end
 		end
 	end
-	
+
 	local function modifyNametag(character)
 		if not character then return end
 		local head = character:FindFirstChild("Head")
@@ -2862,24 +2861,29 @@ run(function()
 		local displayNameContainer = nametag:FindFirstChild("DisplayNameContainer")
 		if not displayNameContainer then return end
 		local displayName = displayNameContainer:FindFirstChild("DisplayName")
-		if displayName and displayName:IsA("TextLabel") then
+		if not displayName or not displayName:IsA("TextLabel") then return end
+
+		if propertyConnections[displayName] then
+			displayName.Text = customName
+			attachWatcher(displayName)
+		else
 			watchElement(displayName)
 		end
 	end
-	
+
 	local function restoreAll()
-		for element, conn in propertyConnections do
+		for element, conn in pairs(propertyConnections) do
 			conn:Disconnect()
 		end
 		table.clear(propertyConnections)
-		for element, original in originalNames do
+		for element, original in pairs(originalNames) do
 			if element and element.Parent then
 				element.Text = original
 			end
 		end
 		table.clear(originalNames)
 	end
-	
+
 	StreamProof = vape.Categories.Render:CreateModule({
 		Name = 'StreamProof',
 		Function = function(callback)
@@ -2891,7 +2895,7 @@ run(function()
 						watchElement(descendant)
 					end))
 				end
-				
+
 				local existingKillFeed = lplr.PlayerGui:FindFirstChild("KillFeedGui")
 				if existingKillFeed then
 					processGui(existingKillFeed)
@@ -2899,7 +2903,7 @@ run(function()
 						watchElement(descendant)
 					end))
 				end
-				
+
 				StreamProof:Clean(lplr.PlayerGui.ChildAdded:Connect(function(gui)
 					if gui.Name == "TabListScreenGui" or gui.Name == "KillFeedGui" then
 						processGui(gui)
@@ -2908,18 +2912,18 @@ run(function()
 						end))
 					end
 				end))
-				
+
 				if lplr.Character then
 					modifyNametag(lplr.Character)
 				end
-				
+
 				StreamProof:Clean(lplr.CharacterAdded:Connect(function(character)
 					task.wait(0.5)
 					if StreamProof.Enabled then
 						modifyNametag(character)
 					end
 				end))
-				
+
 				nametagConnection = runService.RenderStepped:Connect(function()
 					if StreamProof.Enabled and lplr.Character then
 						pcall(function()
@@ -2927,7 +2931,7 @@ run(function()
 						end)
 					end
 				end)
-				
+
 			else
 				if nametagConnection then
 					nametagConnection:Disconnect()
