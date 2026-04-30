@@ -12390,8 +12390,28 @@ run(function()
     local TeleportService = game:GetService("TeleportService")
     local AutoLobby
     local Delay
+    local UseVapeNotif
+
+    local function notif(...)
+        return vape:CreateNotification(...)
+    end
+
+    local function sendNotification()
+        if UseVapeNotif.Enabled then
+            notif({
+                Title = 'AutoLobby',
+                Text = 'Match ended, teleporting to lobby...',
+                Duration = 3
+            })
+        else
+            bedwars.Notify({
+                text = 'Match ended, teleporting to lobby...',
+            })
+        end
+    end
 
     local function lobby()
+        sendNotification()
         TeleportService:Teleport(6872265039, lplr)
     end
 
@@ -12417,6 +12437,12 @@ run(function()
         Suffix = function(val)
             return val == 1 and 'second' or 'seconds'
         end
+    })
+
+    UseVapeNotif = AutoLobby:CreateToggle({
+        Name = 'Vape Notification',
+        Default = true,
+        Tooltip = 'if its on you get the vape notification if not you get bedwars'
     })
 end)
 
