@@ -2801,46 +2801,44 @@ run(function()
 	local nametagConnection = nil
 	local propertyConnections = {}
 	local customName = "Me"
-	
-	local function modifyPlayerName(element)
-		if not element:IsA("TextLabel") then return end
-		if element.Name ~= "PlayerName" and element.Name ~= "EntityName" and element.Name ~= "DisplayName" then return end
-		
-		local current = originalNames[element] or element.Text
-		if current:find(lplr.Name, 1, true) or current:find(lplr.DisplayName, 1, true) then
-			if not originalNames[element] then
-				originalNames[element] = element.Text
-			end
-			element.Text = customName
-		end
-	end
-	
-	local function restorePlayerName(element)
-		if originalNames[element] then
-			element.Text = originalNames[element]
-			originalNames[element] = nil
-		end
-	end
 
 	local function watchElement(element)
 		if not element:IsA("TextLabel") then return end
 		if element.Name ~= "PlayerName" and element.Name ~= "EntityName" and element.Name ~= "DisplayName" then return end
 		if propertyConnections[element] then return end
 
-		modifyPlayerName(element)
+		local original = element.Text
+		if not (original:find(lplr.Name, 1, true) or original:find(lplr.DisplayName, 1, true)) then return end
 
+		originalNames[element] = original
+		element.Text = customName
+
+		local ignoreNext = false
 		propertyConnections[element] = element:GetPropertyChangedSignal("Text"):Connect(function()
 			if not StreamProof.Enabled then return end
-			local current = originalNames[element] or element.Text
-			if current:find(lplr.Name, 1, true) or current:find(lplr.DisplayName, 1, true) then
-				if not originalNames[element] then
-					originalNames[element] = element.Text
-				end
-				if element.Text ~= customName then
-					element.Text = customName
-				end
+			if ignoreNext then
+				ignoreNext = false
+				return
 			end
+			local newText = element.Text
+			if newText == customName then return end
+			if newText:find(lplr.Name, 1, true) or newText:find(lplr.DisplayName, 1, true) then
+				originalNames[element] = newText
+			end
+			ignoreNext = true
+			element.Text = customName
 		end)
+	end
+
+	local function unwatchElement(element)
+		if propertyConnections[element] then
+			propertyConnections[element]:Disconnect()
+			propertyConnections[element] = nil
+		end
+		if originalNames[element] then
+			element.Text = originalNames[element]
+			originalNames[element] = nil
+		end
 	end
 	
 	local function processGui(gui)
@@ -2852,7 +2850,28 @@ run(function()
 	local function refreshAll()
 		for element, _ in originalNames do
 			if element and element.Parent then
+				-- disconnect so the property signal doesnt fight us
+				if propertyConnections[element] then
+					propertyConnections[element]:Disconnect()
+					propertyConnections[element] = nil
+				end
 				element.Text = customName
+				-- re-attach the watcher
+				local ignoreNext = false
+				propertyConnections[element] = element:GetPropertyChangedSignal("Text"):Connect(function()
+					if not StreamProof.Enabled then return end
+					if ignoreNext then
+						ignoreNext = false
+						return
+					end
+					local newText = element.Text
+					if newText == customName then return end
+					if newText:find(lplr.Name, 1, true) or newText:find(lplr.DisplayName, 1, true) then
+						originalNames[element] = newText
+					end
+					ignoreNext = true
+					element.Text = customName
+				end)
 			end
 		end
 	end
@@ -2871,22 +2890,17 @@ run(function()
 		end
 	end
 	
-	local function restoreNametag(character)
-		if not character then return end
-		local head = character:FindFirstChild("Head")
-		if not head then return end
-		local nametag = head:FindFirstChild("Nametag")
-		if not nametag then return end
-		local displayNameContainer = nametag:FindFirstChild("DisplayNameContainer")
-		if not displayNameContainer then return end
-		local displayName = displayNameContainer:FindFirstChild("DisplayName")
-		if displayName and displayName:IsA("TextLabel") then
-			restorePlayerName(displayName)
-			if propertyConnections[displayName] then
-				propertyConnections[displayName]:Disconnect()
-				propertyConnections[displayName] = nil
+	local function restoreAll()
+		for element, conn in propertyConnections do
+			conn:Disconnect()
+		end
+		table.clear(propertyConnections)
+		for element, original in originalNames do
+			if element and element.Parent then
+				element.Text = original
 			end
 		end
+		table.clear(originalNames)
 	end
 	
 	StreamProof = vape.Categories.Render:CreateModule({
@@ -2942,31 +2956,7 @@ run(function()
 					nametagConnection:Disconnect()
 					nametagConnection = nil
 				end
-
-				for element, conn in propertyConnections do
-					conn:Disconnect()
-				end
-				table.clear(propertyConnections)
-				
-				local existingTabList = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
-				if existingTabList then
-					for _, descendant in existingTabList:GetDescendants() do
-						restorePlayerName(descendant)
-					end
-				end
-				
-				local existingKillFeed = lplr.PlayerGui:FindFirstChild("KillFeedGui")
-				if existingKillFeed then
-					for _, descendant in existingKillFeed:GetDescendants() do
-						restorePlayerName(descendant)
-					end
-				end
-				
-				if lplr.Character then
-					restoreNametag(lplr.Character)
-				end
-				
-				table.clear(originalNames)
+				restoreAll()
 			end
 		end,
 		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag (made by max)'
