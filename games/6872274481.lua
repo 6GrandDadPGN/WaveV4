@@ -2799,15 +2799,16 @@ run(function()
 	local StreamProof
 	local nametagConnection = nil
 	local customName = "Me"
+	local trackedElements = {}
 
-	local function replaceInElement(element)
+	local function trackElement(element)
 		if not element or not element:IsA("TextLabel") then return end
 		if element.Name ~= "PlayerName" and element.Name ~= "EntityName" then return end
 		pcall(function()
 			local t = element.Text
 			if type(t) ~= "string" then return end
-			if t == customName then return end
 			if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
+				trackedElements[element] = true
 				element.Text = customName
 			end
 		end)
@@ -2817,47 +2818,78 @@ run(function()
 		if not gui then return end
 		pcall(function()
 			for _, desc in pairs(gui:GetDescendants()) do
-				replaceInElement(desc)
+				trackElement(desc)
 			end
 		end)
+	end
+
+	local function forceTracked()
+		for element, _ in pairs(trackedElements) do
+			if not element or not element.Parent then
+				trackedElements[element] = nil
+			else
+				pcall(function()
+					local t = element.Text
+					if type(t) == "string" then
+						-- if game reset it back to real name, re-track
+						if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
+							element.Text = customName
+						elseif t ~= customName then
+							-- text changed to something else entirely, drop tracking
+							trackedElements[element] = nil
+						else
+							element.Text = customName
+						end
+					end
+				end)
+			end
+		end
 	end
 
 	StreamProof = vape.Categories.Render:CreateModule({
 		Name = 'StreamProof',
 		Function = function(callback)
 			if callback then
-				-- handle TabListScreenGui dynamically
 				StreamProof:Clean(lplr.PlayerGui.ChildAdded:Connect(function(gui)
 					if gui.Name == "TabListScreenGui" then
 						task.wait(0.3)
 						processGui(gui)
 						StreamProof:Clean(gui.DescendantAdded:Connect(function(desc)
 							task.wait()
-							replaceInElement(desc)
+							trackElement(desc)
 						end))
 					end
 					if gui.Name == "KillFeedGui" then
 						processGui(gui)
 						StreamProof:Clean(gui.DescendantAdded:Connect(function(desc)
 							task.wait()
-							replaceInElement(desc)
+							trackElement(desc)
 						end))
 					end
 				end))
 
-				-- handle already existing KillFeedGui
 				local killFeed = lplr.PlayerGui:FindFirstChild("KillFeedGui")
 				if killFeed then
 					processGui(killFeed)
 					StreamProof:Clean(killFeed.DescendantAdded:Connect(function(desc)
 						task.wait()
-						replaceInElement(desc)
+						trackElement(desc)
 					end))
 				end
 
 				nametagConnection = runService.RenderStepped:Connect(function()
 					if not StreamProof.Enabled then return end
 					pcall(function()
+						-- force all tracked elements
+						forceTracked()
+
+						-- rescan TabList and KillFeed every frame to catch new ones
+						local tl = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
+						if tl then processGui(tl) end
+
+						local kf = lplr.PlayerGui:FindFirstChild("KillFeedGui")
+						if kf then processGui(kf) end
+
 						-- nametag
 						if lplr.Character then
 							local head = lplr.Character:FindFirstChild("Head")
@@ -2874,13 +2906,6 @@ run(function()
 								end
 							end)
 						end
-
-						-- rescan TabList and KillFeed every frame
-						local tl = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
-						if tl then processGui(tl) end
-
-						local kf = lplr.PlayerGui:FindFirstChild("KillFeedGui")
-						if kf then processGui(kf) end
 					end)
 				end)
 
@@ -2889,6 +2914,7 @@ run(function()
 					nametagConnection:Disconnect()
 					nametagConnection = nil
 				end
+				table.clear(trackedElements)
 			end
 		end,
 		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag (made by max)'
