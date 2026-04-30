@@ -1015,6 +1015,22 @@ run(function()
 	local lplr = Players.LocalPlayer
 	local playerGui = lplr:WaitForChild("PlayerGui")
 
+	-- FIX: safe executor function lookup
+	local function getSafe(name)
+		return (getgenv and getgenv()[name]) or (getrenv and getrenv()[name]) or nil
+	end
+	local mouse1click   = getSafe("mouse1click")   or getSafe("Mouse1Click")
+	local mouse2click   = getSafe("mouse2click")   or getSafe("Mouse2Click")
+	local isrbxactive   = getSafe("isrbxactive")   or getSafe("isRobloxFocused") or function() return true end
+	local iswindowactive = getSafe("iswindowactive") or function() return true end
+	local inputService  = UserInputService
+
+	local function getTool()
+		local char = lplr.Character
+		if not char then return nil end
+		return char:FindFirstChildOfClass("Tool")
+	end
+
 	local function create(class, props, parent)
 		local obj = Instance.new(class)
 		for k, v in pairs(props) do
@@ -1094,26 +1110,42 @@ run(function()
 		return f, tick
 	end
 
+	-- FIX: spinner now uses integer-safe arithmetic and returns accurate values
 	local function spinner(val, mn, mx, dec, pos, size, parent)
 		local f = create("Frame", {Position = pos, Size = size, BackgroundColor3 = Color3.fromRGB(255,255,255), BorderSizePixel = 0, ZIndex = 2}, parent)
 		corner(2, f) stroke(Color3.fromRGB(160,160,160), 1, f)
-		local numLbl = label({Position = UDim2.fromOffset(3,0), Size = UDim2.new(1,-18,1,0), Text = dec > 0 and string.format("%."..dec.."f", val) or tostring(val), Font = Enum.Font.Code, TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right, ZIndex = 3}, f)
+		local fmt = dec > 0 and ("%." .. dec .. "f") or "%d"
+		local numLbl = label({
+			Position = UDim2.fromOffset(3,0),
+			Size = UDim2.new(1,-18,1,0),
+			Text = string.format(fmt, val),
+			Font = Enum.Font.Code, TextSize = 11,
+			TextXAlignment = Enum.TextXAlignment.Right, ZIndex = 3
+		}, f)
 		local af = create("Frame", {Position = UDim2.new(1,-17,0,0), Size = UDim2.fromOffset(17, size.Y.Offset), BackgroundTransparency = 1, ZIndex = 3}, f)
 		stroke(Color3.fromRGB(180,180,180), 1, af)
 		local up = create("TextButton", {Size = UDim2.new(1,0,0.5,0), BackgroundColor3 = Color3.fromRGB(220,220,220), Text = "▲", TextSize = 7, Font = Enum.Font.Arial, TextColor3 = Color3.fromRGB(50,50,50), BorderSizePixel = 0, AutoButtonColor = true, ZIndex = 4}, af)
 		local dn = create("TextButton", {Position = UDim2.new(0,0,0.5,0), Size = UDim2.new(1,0,0.5,0), BackgroundColor3 = Color3.fromRGB(220,220,220), Text = "▼", TextSize = 7, Font = Enum.Font.Arial, TextColor3 = Color3.fromRGB(50,50,50), BorderSizePixel = 0, AutoButtonColor = true, ZIndex = 4}, af)
-		local cur = val
-		local step = dec > 0 and (1/10^dec) or 1
-		local function upd(d)
-			cur = math.clamp(math.floor((cur+d)*1000+0.5)/1000, mn, mx)
-			numLbl.Text = dec > 0 and string.format("%."..dec.."f", cur) or tostring(math.floor(cur))
+
+		-- FIX: use scaled integers to avoid float precision drift
+		local scale  = 10 ^ dec
+		local curInt = math.floor(val * scale + 0.5)
+		local mnInt  = math.floor(mn * scale + 0.5)
+		local mxInt  = math.floor(mx * scale + 0.5)
+
+		local function upd(delta)
+			curInt = math.clamp(curInt + delta, mnInt, mxInt)
+			numLbl.Text = string.format(fmt, curInt / scale)
 		end
-		up.Activated:Connect(function() upd(step) end)
-		dn.Activated:Connect(function() upd(-step) end)
-		return f, function() return cur end
+
+		up.Activated:Connect(function() upd(1) end)
+		dn.Activated:Connect(function() upd(-1) end)
+
+		-- getter returns the true numeric value
+		return f, function() return curInt / scale end
 	end
 
-	-- Build GUI (disabled by default, only opens when button pressed)
+	-- Build GUI
 	local sg = create("ScreenGui", {
 		Name = "AutoClickerUI",
 		ResetOnSpawn = false,
@@ -1155,22 +1187,82 @@ run(function()
 
 	local body = create("Frame", {Position = UDim2.fromOffset(0,26), Size = UDim2.new(1,0,1,-26), BackgroundTransparency = 1, ClipsDescendants = false}, win)
 
-	-- Activation
+	-- Activation key state
+	-- FIX: store both KeyCode and UserInputType so XButton1/XButton2 work
+	local activationKeyCode  = nil                         -- Enum.KeyCode or nil
+	local activationUIT      = Enum.UserInputType.None     -- for mouse side buttons
+	local activationName     = "XButton1"
+
+	-- FIX: helper to check if the activation input is currently held
+	local function isActivationHeld()
+		if activationKeyCode and activationKeyCode ~= Enum.KeyCode.Unknown then
+			return UserInputService:IsKeyDown(activationKeyCode)
+		end
+		if activationUIT ~= Enum.UserInputType.None then
+			-- MouseButton1/2/3 have IsMouseButtonPressed; side buttons don't,
+			-- so we track state manually below
+			if activationUIT == Enum.UserInputType.MouseButton1 then
+				return UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
+			elseif activationUIT == Enum.UserInputType.MouseButton2 then
+				return UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
+			end
+		end
+		return false
+	end
+
+	-- FIX: manual hold-state tracking for XButton1 / XButton2 (no IsMouseButtonPressed for these)
+	local sideButtonHeld = false
+	UserInputService.InputBegan:Connect(function(input, gpe)
+		if gpe then return end
+		if input.UserInputType == activationUIT
+			and (activationUIT == Enum.UserInputType.MouseButton4
+			  or activationUIT == Enum.UserInputType.MouseButton5) then
+			sideButtonHeld = true
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == activationUIT
+			and (activationUIT == Enum.UserInputType.MouseButton4
+			  or activationUIT == Enum.UserInputType.MouseButton5) then
+			sideButtonHeld = false
+		end
+	end)
+
+	local function isActivationActive(isToggle, toggleState)
+		if isToggle then return toggleState end
+		-- hold mode
+		if activationUIT == Enum.UserInputType.MouseButton4
+		   or activationUIT == Enum.UserInputType.MouseButton5 then
+			return sideButtonHeld
+		end
+		return isActivationHeld()
+	end
+
+	-- Activation section
 	local actG = group("Activation", UDim2.fromOffset(8,14), UDim2.fromOffset(472,65), body)
 	label({Position = UDim2.fromOffset(8,18), Size = UDim2.fromOffset(88,18), Text = "Activation Key:"}, actG)
-	local keyBtn = create("TextButton", {Position = UDim2.fromOffset(98,15), Size = UDim2.fromOffset(120,22), BackgroundColor3 = Color3.fromRGB(255,255,255), Text = "XButton1", TextSize = 12, Font = Enum.Font.Code, TextColor3 = Color3.fromRGB(30,30,30), BorderSizePixel = 0, ZIndex = 3, AutoButtonColor = false}, actG)
+	local keyBtn = create("TextButton", {Position = UDim2.fromOffset(98,15), Size = UDim2.fromOffset(120,22), BackgroundColor3 = Color3.fromRGB(255,255,255), Text = activationName, TextSize = 12, Font = Enum.Font.Code, TextColor3 = Color3.fromRGB(30,30,30), BorderSizePixel = 0, ZIndex = 3, AutoButtonColor = false}, actG)
 	corner(2, keyBtn) stroke(Color3.fromRGB(160,160,160), 1, keyBtn)
 	local selBtn = mkbtn({Position = UDim2.fromOffset(224,14), Size = UDim2.fromOffset(76,24), Text = "SELECT..."}, actG)
 	mkbtn({Position = UDim2.fromOffset(306,14), Size = UDim2.fromOffset(100,24), Text = "CHOOSE APPS"}, actG)
 
 	local listening = false
 	local listenConn = nil
+
+	-- FIX: capture XButton1 (MouseButton4) and XButton2 (MouseButton5) properly
+	local UIT_NAMES = {
+		[Enum.UserInputType.MouseButton1]  = "LButton",
+		[Enum.UserInputType.MouseButton2]  = "RButton",
+		[Enum.UserInputType.MouseButton3]  = "MButton",
+		[Enum.UserInputType.MouseButton4]  = "XButton1",
+		[Enum.UserInputType.MouseButton5]  = "XButton2",
+	}
+
 	selBtn.Activated:Connect(function()
 		if listening then
 			listening = false
 			if listenConn then listenConn:Disconnect() listenConn = nil end
 			selBtn.Text = "SELECT..."
-			keyBtn.Text = "XButton1"
 			return
 		end
 		listening = true
@@ -1178,11 +1270,29 @@ run(function()
 		keyBtn.Text = "Press key..."
 		listenConn = UserInputService.InputBegan:Connect(function(input, gpe)
 			if gpe then return end
+			-- ignore pure mouse movement
+			if input.UserInputType == Enum.UserInputType.MouseMovement then return end
 			listening = false
 			selBtn.Text = "SELECT..."
-			keyBtn.Text = input.KeyCode ~= Enum.KeyCode.Unknown and input.KeyCode.Name or input.UserInputType.Name
 			listenConn:Disconnect()
 			listenConn = nil
+
+			-- FIX: check UIT_NAMES first so side buttons get their friendly name
+			if UIT_NAMES[input.UserInputType] then
+				activationName    = UIT_NAMES[input.UserInputType]
+				activationUIT     = input.UserInputType
+				activationKeyCode = nil
+			elseif input.KeyCode ~= Enum.KeyCode.Unknown then
+				activationName    = input.KeyCode.Name
+				activationKeyCode = input.KeyCode
+				activationUIT     = Enum.UserInputType.None
+			else
+				activationName    = input.UserInputType.Name
+				activationUIT     = input.UserInputType
+				activationKeyCode = nil
+			end
+			keyBtn.Text = activationName
+			sideButtonHeld = false  -- reset on rebind
 		end)
 	end)
 
@@ -1192,10 +1302,20 @@ run(function()
 	local _, tDot = radio(UDim2.fromOffset(170,42), actG)
 	label({Position = UDim2.fromOffset(188,42), Size = UDim2.fromOffset(50,18), Text = "toggle"}, actG)
 	hDot.Visible = true
-	create("TextButton", {Position=UDim2.fromOffset(104,40),Size=UDim2.fromOffset(60,20),BackgroundTransparency=1,Text="",ZIndex=5},actG).Activated:Connect(function() hDot.Visible=true tDot.Visible=false end)
-	create("TextButton", {Position=UDim2.fromOffset(168,40),Size=UDim2.fromOffset(70,20),BackgroundTransparency=1,Text="",ZIndex=5},actG).Activated:Connect(function() hDot.Visible=false tDot.Visible=true end)
 
-	-- Clicks
+	local isToggleMode = false
+	create("TextButton", {Position=UDim2.fromOffset(104,40),Size=UDim2.fromOffset(60,20),BackgroundTransparency=1,Text="",ZIndex=5},actG).Activated:Connect(function()
+		hDot.Visible=true tDot.Visible=false isToggleMode=false
+	end)
+	create("TextButton", {Position=UDim2.fromOffset(168,40),Size=UDim2.fromOffset(70,20),BackgroundTransparency=1,Text="",ZIndex=5},actG).Activated:Connect(function()
+		hDot.Visible=false tDot.Visible=true isToggleMode=true
+	end)
+
+	-- Toggle state + key press tracking
+	local toggleActive = false
+	local prevDown = false
+
+	-- Clicks section
 	local clkG = group("Clicks", UDim2.fromOffset(8,90), UDim2.fromOffset(472,112), body)
 	local mBody = create("Frame", {Position=UDim2.fromOffset(155,10),Size=UDim2.fromOffset(80,88),BackgroundColor3=Color3.fromRGB(215,205,190),BorderSizePixel=0,ZIndex=2},clkG)
 	corner(28,mBody) stroke(Color3.fromRGB(160,150,135),1.5,mBody)
@@ -1207,42 +1327,39 @@ run(function()
 	corner(7,mScroll) stroke(Color3.fromRGB(155,155,155),1,mScroll)
 
 	local function highlightMouse(side)
-		mLeft.BackgroundColor3 = side=="left" and Color3.fromRGB(160,200,235) or Color3.fromRGB(215,205,190)
-		mRight.BackgroundColor3 = side=="right" and Color3.fromRGB(160,200,235) or Color3.fromRGB(215,205,190)
-		mScroll.BackgroundColor3 = side=="middle" and Color3.fromRGB(160,200,235) or Color3.fromRGB(185,185,185)
+		mLeft.BackgroundColor3  = side=="left"   and Color3.fromRGB(160,200,235) or Color3.fromRGB(215,205,190)
+		mRight.BackgroundColor3 = side=="right"  and Color3.fromRGB(160,200,235) or Color3.fromRGB(215,205,190)
+		mScroll.BackgroundColor3= side=="middle" and Color3.fromRGB(160,200,235) or Color3.fromRGB(185,185,185)
 	end
 	highlightMouse("left")
 
 	local lrD, mrD, rrD
 	local function makeMouseBtns()
-		create("TextButton",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Text="",ZIndex=6},mLeft).Activated:Connect(function() highlightMouse("left") lrD.Visible=true mrD.Visible=false rrD.Visible=false end)
-		create("TextButton",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Text="",ZIndex=6},mRight).Activated:Connect(function() highlightMouse("right") lrD.Visible=false mrD.Visible=false rrD.Visible=true end)
-		create("TextButton",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Text="",ZIndex=7},mScroll).Activated:Connect(function() highlightMouse("middle") lrD.Visible=false mrD.Visible=true rrD.Visible=false end)
+		create("TextButton",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Text="",ZIndex=6},mLeft).Activated:Connect(function()  highlightMouse("left")   lrD.Visible=true  mrD.Visible=false rrD.Visible=false end)
+		create("TextButton",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Text="",ZIndex=6},mRight).Activated:Connect(function() highlightMouse("right")  lrD.Visible=false mrD.Visible=false rrD.Visible=true  end)
+		create("TextButton",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Text="",ZIndex=7},mScroll).Activated:Connect(function()highlightMouse("middle") lrD.Visible=false mrD.Visible=true  rrD.Visible=false end)
 	end
 
-	local _, lrDot = radio(UDim2.fromOffset(8,38), clkG)
-	lrD = lrDot
+	local _, lrDot = radio(UDim2.fromOffset(8,38), clkG)   lrD = lrDot
 	label({Position=UDim2.fromOffset(28,34),Size=UDim2.fromOffset(120,18),Text="left Mouse Button"},clkG)
 	label({Position=UDim2.fromOffset(28,50),Size=UDim2.fromOffset(120,18),Text="LButton",Font=Enum.Font.GothamBold,TextSize=11},clkG)
 
-	local _, mrDot = radio(UDim2.fromOffset(252,18), clkG)
-	mrD = mrDot
+	local _, mrDot = radio(UDim2.fromOffset(252,18), clkG)  mrD = mrDot
 	label({Position=UDim2.fromOffset(272,14),Size=UDim2.fromOffset(160,18),Text="middle Mouse Button"},clkG)
 	label({Position=UDim2.fromOffset(272,28),Size=UDim2.fromOffset(160,18),Text="MButton",Font=Enum.Font.GothamBold,TextSize=11},clkG)
 
-	local _, rrDot = radio(UDim2.fromOffset(252,60), clkG)
-	rrD = rrDot
+	local _, rrDot = radio(UDim2.fromOffset(252,60), clkG)  rrD = rrDot
 	label({Position=UDim2.fromOffset(272,56),Size=UDim2.fromOffset(160,18),Text="right Mouse Button"},clkG)
 	label({Position=UDim2.fromOffset(272,70),Size=UDim2.fromOffset(160,18),Text="RButton",Font=Enum.Font.GothamBold,TextSize=11},clkG)
 
 	lrD.Visible = true
 	makeMouseBtns()
 
-	create("TextButton",{Position=UDim2.fromOffset(6,32),Size=UDim2.fromOffset(140,30),BackgroundTransparency=1,Text="",ZIndex=5},clkG).Activated:Connect(function() lrD.Visible=true mrD.Visible=false rrD.Visible=false highlightMouse("left") end)
-	create("TextButton",{Position=UDim2.fromOffset(250,12),Size=UDim2.fromOffset(190,30),BackgroundTransparency=1,Text="",ZIndex=5},clkG).Activated:Connect(function() lrD.Visible=false mrD.Visible=true rrD.Visible=false highlightMouse("middle") end)
-	create("TextButton",{Position=UDim2.fromOffset(250,54),Size=UDim2.fromOffset(190,30),BackgroundTransparency=1,Text="",ZIndex=5},clkG).Activated:Connect(function() lrD.Visible=false mrD.Visible=false rrD.Visible=true highlightMouse("right") end)
+	create("TextButton",{Position=UDim2.fromOffset(6,32),  Size=UDim2.fromOffset(140,30),BackgroundTransparency=1,Text="",ZIndex=5},clkG).Activated:Connect(function() lrD.Visible=true  mrD.Visible=false rrD.Visible=false highlightMouse("left")   end)
+	create("TextButton",{Position=UDim2.fromOffset(250,12),Size=UDim2.fromOffset(190,30),BackgroundTransparency=1,Text="",ZIndex=5},clkG).Activated:Connect(function() lrD.Visible=false mrD.Visible=true  rrD.Visible=false highlightMouse("middle") end)
+	create("TextButton",{Position=UDim2.fromOffset(250,54),Size=UDim2.fromOffset(190,30),BackgroundTransparency=1,Text="",ZIndex=5},clkG).Activated:Connect(function() lrD.Visible=false mrD.Visible=false rrD.Visible=true  highlightMouse("right")  end)
 
-	-- Click rate
+	-- Click rate section
 	local rateG = group("Click rate", UDim2.fromOffset(8,214), UDim2.fromOffset(232,95), body)
 	local _, getCPS2 = spinner(12,1,999,2,UDim2.fromOffset(8,18),UDim2.fromOffset(88,22),rateG)
 	label({Position=UDim2.fromOffset(100,20),Size=UDim2.fromOffset(125,18),Text="Clicks per second"},rateG)
@@ -1258,7 +1375,7 @@ run(function()
 	local _, getDuty = spinner(50,1,99,2,UDim2.fromOffset(148,69),UDim2.fromOffset(68,22),rateG)
 	label({Position=UDim2.fromOffset(218,72),Size=UDim2.fromOffset(12,18),Text="%"},rateG)
 
-	-- Click limit
+	-- Click limit section
 	local limitG = group("Click limit", UDim2.fromOffset(246,214), UDim2.fromOffset(234,95), body)
 	local _, lmTick = checkbox(UDim2.fromOffset(8,20),limitG)
 	label({Position=UDim2.fromOffset(26,18),Size=UDim2.fromOffset(150,18),Text="Enable Click Limit"},limitG)
@@ -1268,7 +1385,7 @@ run(function()
 	local _, getLimitV = spinner(0,0,99999,0,UDim2.fromOffset(72,45),UDim2.fromOffset(88,22),limitG)
 	label({Position=UDim2.fromOffset(164,48),Size=UDim2.fromOffset(40,18),Text="Clicks"},limitG)
 
-	-- Mode
+	-- Mode section
 	local modeG = group("Mode  [vape]", UDim2.fromOffset(8,320), UDim2.fromOffset(472,50), body)
 	label({Position=UDim2.fromOffset(8,17),Size=UDim2.fromOffset(40,18),Text="Mode:"},modeG)
 	local modes = {"Tool","Click","RightClick"}
@@ -1292,7 +1409,7 @@ run(function()
 		sg.Enabled=false
 	end)
 
-	-- Wait for vape to be ready before creating modules
+	-- Wait for vape then register modules
 	task.spawn(function()
 		local attempts = 0
 		repeat
@@ -1306,35 +1423,95 @@ run(function()
 		end
 
 		AutoClicker = vape.Categories.Combat:CreateModule({
-			Name = 'AutoClicker',
+			Name    = 'AutoClicker',
 			Tooltip = 'Automatically clicks for you',
-			Function = function(callback)
-				if callback then
-					repeat
+			-- FIX: vape calls Function with no args; loop runs while Enabled is true
+			Function = function()
+				local clickCount = 0
+				while AutoClicker.Enabled do
+					-- Handle toggle flip on activation key press
+					if isToggleMode then
+						local down = false
+						if activationUIT == Enum.UserInputType.MouseButton4
+						   or activationUIT == Enum.UserInputType.MouseButton5 then
+							down = sideButtonHeld
+						elseif activationKeyCode and activationKeyCode ~= Enum.KeyCode.Unknown then
+							down = UserInputService:IsKeyDown(activationKeyCode)
+						end
+						if down and not prevDown then
+							toggleActive = not toggleActive
+						end
+						prevDown = down
+					end
+
+					local shouldClick = isActivationActive(isToggleMode, toggleActive)
+
+					if shouldClick then
 						local currentMode = modes[modeIdx]
+
+						-- Check click limit
+						if lmChecked then
+							local lim = getLimitV()
+							if lim > 0 and clickCount >= lim then
+								AutoClicker.Enabled = false
+								break
+							end
+						end
+
+						-- Perform the click
+						local didClick = false
 						if currentMode == 'Tool' then
 							local tool = getTool()
-							if tool and inputService:IsMouseButtonPressed(0) then
+							if tool then
 								tool:Activate()
+								didClick = true
 							end
 						else
-							if mouse1click and (isrbxactive or iswindowactive)() then
-								if not vape.gui.ScaledGui.ClickGui.Visible then
-									(currentMode == 'Click' and mouse1click or mouse2click)()
+							local active = (isrbxactive or iswindowactive)()
+							if active then
+								if not (vape.gui and vape.gui.ScaledGui and vape.gui.ScaledGui.ClickGui and vape.gui.ScaledGui.ClickGui.Visible) then
+									if currentMode == 'Click' then
+										if mouse1click then mouse1click() didClick = true end
+									else
+										if mouse2click then mouse2click() didClick = true end
+									end
 								end
 							end
 						end
-						local minC, maxC = getMin(), getMax()
-						local randomCPS = math.random(minC*100, maxC*100) / 100
+
+						if didClick then
+							clickCount += 1
+						end
+
+						-- FIX: compute wait from GUI spinners; use vape CPS if synced
+						local minC = getMin()
+						local maxC = getMax()
+						if AutoClicker.CPS then
+							-- keep vape slider in sync when available
+							minC = AutoClicker.CPS.Min or minC
+							maxC = AutoClicker.CPS.Max or maxC
+						end
+						local randomCPS = math.random(
+							math.floor(minC * 100),
+							math.floor(maxC * 100)
+						) / 100
 						task.wait(1 / randomCPS)
-					until not AutoClicker.Enabled
+					else
+						-- not active: reset toggle bookkeeping and yield
+						if not isToggleMode then
+							toggleActive = false
+						end
+						task.wait(0.05)
+					end
 				end
+				-- reset toggle when module disabled
+				toggleActive = false
+				prevDown     = false
 			end,
 		})
 
-		-- GUI button inside the module
 		GUIButton = AutoClicker:CreateButton({
-			Name = 'GUI',
+			Name    = 'GUI',
 			Tooltip = 'Open the AutoClicker GUI',
 			Function = function()
 				sg.Enabled = not sg.Enabled
@@ -1342,17 +1519,23 @@ run(function()
 		})
 
 		Mode = AutoClicker:CreateDropdown({
-			Name = 'Mode',
-			List = {'Tool', 'Click', 'RightClick'},
-			Tooltip = 'Tool - uses roblox tools\nClick - Left click\nRightClick - Right click'
+			Name    = 'Mode',
+			List    = {'Tool', 'Click', 'RightClick'},
+			Tooltip = 'Tool - uses roblox tools\nClick - Left click\nRightClick - Right click',
+			-- FIX: sync dropdown selection back into modeIdx
+			Function = function(selected)
+				for i, v in ipairs(modes) do
+					if v == selected then modeIdx = i break end
+				end
+			end,
 		})
 
 		CPS = AutoClicker:CreateTwoSlider({
-			Name = 'CPS',
-			Min = 1,
-			Max = 20,
+			Name       = 'CPS',
+			Min        = 1,
+			Max        = 20,
 			DefaultMin = 8,
-			DefaultMax = 12
+			DefaultMax = 12,
 		})
 	end)
 end)
