@@ -2799,7 +2799,7 @@ run(function()
 	local StreamProof
 	local originalNames = {}
 	local nametagConnection = nil
-	local customName = "6GrandDadPGN"
+	local customName = "Me"
 	
 	local function modifyPlayerName(element)
 		if element:IsA("TextLabel") and (element.Name == "PlayerName" or element.Name == "EntityName" or element.Name == "DisplayName") then
@@ -2824,45 +2824,15 @@ run(function()
 			modifyPlayerName(descendant)
 		end
 	end
-	
+
 	local function refreshAll()
-		local existingTabList = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
-		if existingTabList then
-			for _, descendant in existingTabList:GetDescendants() do
-				if originalNames[descendant] then
-					descendant.Text = customName
-				end
-			end
-		end
-		
-		local existingKillFeed = lplr.PlayerGui:FindFirstChild("KillFeedGui")
-		if existingKillFeed then
-			for _, descendant in existingKillFeed:GetDescendants() do
-				if originalNames[descendant] then
-					descendant.Text = customName
-				end
-			end
-		end
-		
-		if lplr.Character then
-			local head = lplr.Character:FindFirstChild("Head")
-			if head then
-				local nametag = head:FindFirstChild("Nametag")
-				if nametag then
-					local displayNameContainer = nametag:FindFirstChild("DisplayNameContainer")
-					if displayNameContainer then
-						local displayName = displayNameContainer:FindFirstChild("DisplayName")
-						if displayName and displayName:IsA("TextLabel") then
-							if originalNames[displayName] then
-								displayName.Text = customName
-							end
-						end
-					end
-				end
+		for element, _ in originalNames do
+			if element and element.Parent then
+				element.Text = customName
 			end
 		end
 	end
-
+	
 	local function modifyNametag(character)
 		if not character then return end
 		local head = character:FindFirstChild("Head")
@@ -2974,12 +2944,12 @@ run(function()
 		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag (made by max)'
 	})
 
-	StreamProof:AddTextBox({
+	StreamProof:CreateTextBox({
 		Name = 'Custom Name',
-		Default = customName,
+		Default = 'sleep',
 		Placeholder = 'Enter name...',
 		Function = function(value)
-			customName = (value ~= "" and value) or "6GrandDadPGN"
+			customName = (value ~= "" and value) or "Me"
 			if StreamProof.Enabled then
 				refreshAll()
 			end
