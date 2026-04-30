@@ -2799,10 +2799,28 @@ run(function()
 	local StreamProof
 	local originalNames = {}
 	local nametagConnection = nil
-	local customName = "Me" -- Default name, will be overridden by user input
+	local customName = "sleep" -- Change this to whatever name you want
 	
 	local function modifyPlayerName(element)
-		if element:IsA("TextLabel") and (element.Name == "PlayerName" or element.Name == "EntityName" or element.Name == "DisplayName") then
+		if element:IsA("TextLabel") and element.Name == "PlayerName" then
+			if element.Text:find(lplr.Name) or element.Text:find(lplr.DisplayName) then
+				if not originalNames[element] then
+					originalNames[element] = element.Text
+				end
+				element.Text = customName
+			end
+		end
+		
+		if element:IsA("TextLabel") and element.Name == "EntityName" then
+			if element.Text:find(lplr.Name) or element.Text:find(lplr.DisplayName) then
+				if not originalNames[element] then
+					originalNames[element] = element.Text
+				end
+				element.Text = customName
+			end
+		end
+		
+		if element:IsA("TextLabel") and element.Name == "DisplayName" then
 			if element.Text:find(lplr.Name) or element.Text:find(lplr.DisplayName) then
 				if not originalNames[element] then
 					originalNames[element] = element.Text
@@ -2827,12 +2845,16 @@ run(function()
 	
 	local function modifyNametag(character)
 		if not character then return end
+		
 		local head = character:FindFirstChild("Head")
 		if not head then return end
+		
 		local nametag = head:FindFirstChild("Nametag")
 		if not nametag then return end
+		
 		local displayNameContainer = nametag:FindFirstChild("DisplayNameContainer")
 		if not displayNameContainer then return end
+		
 		local displayName = displayNameContainer:FindFirstChild("DisplayName")
 		if displayName and displayName:IsA("TextLabel") then
 			modifyPlayerName(displayName)
@@ -2841,24 +2863,19 @@ run(function()
 	
 	local function restoreNametag(character)
 		if not character then return end
+		
 		local head = character:FindFirstChild("Head")
 		if not head then return end
+		
 		local nametag = head:FindFirstChild("Nametag")
 		if not nametag then return end
+		
 		local displayNameContainer = nametag:FindFirstChild("DisplayNameContainer")
 		if not displayNameContainer then return end
+		
 		local displayName = displayNameContainer:FindFirstChild("DisplayName")
 		if displayName and displayName:IsA("TextLabel") then
 			restorePlayerName(displayName)
-		end
-	end
-
-	local function refreshAllNames()
-		-- Re-apply the custom name to everything currently modified
-		for element, _ in pairs(originalNames) do
-			if element and element.Parent then
-				element.Text = customName
-			end
 		end
 	end
 	
@@ -2869,6 +2886,7 @@ run(function()
 				local existingTabList = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
 				if existingTabList then
 					processGui(existingTabList)
+					
 					StreamProof:Clean(existingTabList.DescendantAdded:Connect(function(descendant)
 						modifyPlayerName(descendant)
 					end))
@@ -2877,14 +2895,22 @@ run(function()
 				local existingKillFeed = lplr.PlayerGui:FindFirstChild("KillFeedGui")
 				if existingKillFeed then
 					processGui(existingKillFeed)
+					
 					StreamProof:Clean(existingKillFeed.DescendantAdded:Connect(function(descendant)
 						modifyPlayerName(descendant)
 					end))
 				end
 				
 				StreamProof:Clean(lplr.PlayerGui.ChildAdded:Connect(function(gui)
-					if gui.Name == "TabListScreenGui" or gui.Name == "KillFeedGui" then
+					if gui.Name == "TabListScreenGui" then
 						processGui(gui)
+						
+						StreamProof:Clean(gui.DescendantAdded:Connect(function(descendant)
+							modifyPlayerName(descendant)
+						end))
+					elseif gui.Name == "KillFeedGui" then
+						processGui(gui)
+						
 						StreamProof:Clean(gui.DescendantAdded:Connect(function(descendant)
 							modifyPlayerName(descendant)
 						end))
@@ -2937,30 +2963,14 @@ run(function()
 				table.clear(originalNames)
 			end
 		end,
-		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag (made by max)'
-	})
-
-	-- Textbox to set a custom display name
-	vape.Categories.Render:CreateTextbox({
-		Name = 'StreamProof Name',
-		Default = customName,
-		Placeholder = 'Enter custom name...',
-		Function = function(value)
-			if value and value ~= "" then
-				customName = value
-			else
-				customName = "Me"
+		Tooltip = 'Hides your name as much as possible in TabList, KillFeed, and Nametag (made by max)',
+		TextBox = {
+			Placeholder = 'Custom Name...',
+			Default = customName,
+			Function = function(value)
+				customName = (value ~= "" and value) or "6GrandDadPGN"
 			end
-			-- If StreamProof is currently enabled, refresh all modified names live
-			if StreamProof.Enabled then
-				refreshAllNames()
-				if lplr.Character then
-					pcall(function()
-						modifyNametag(lplr.Character)
-					end)
-				end
-			end
-		end
+		}
 	})
 end)
 	
