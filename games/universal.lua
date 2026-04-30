@@ -1016,133 +1016,109 @@ run(function()
 
 	local function create(class, props, parent)
 		local obj = Instance.new(class)
-		for k, v in pairs(props) do
-			obj[k] = v
-		end
+		for k, v in pairs(props) do obj[k] = v end
 		if parent then obj.Parent = parent end
 		return obj
 	end
 
-	local function makeCorner(radius, parent)
-		return create("UICorner", {CornerRadius = UDim.new(0, radius)}, parent)
-	end
+	local function corner(r, p) create("UICorner", {CornerRadius = UDim.new(0, r)}, p) end
+	local function stroke(c, t, p) create("UIStroke", {Color = c, Thickness = t}, p) end
 
-	local function makeStroke(color, thickness, parent)
-		return create("UIStroke", {Color = color, Thickness = thickness}, parent)
-	end
-
-	local function makeLabel(props, parent)
-		local lbl = create("TextLabel", {
+	local function label(props, parent)
+		local d = {
 			BackgroundTransparency = 1,
-			TextColor3 = Color3.fromRGB(30, 30, 30),
+			TextColor3 = Color3.fromRGB(20, 20, 20),
 			Font = Enum.Font.Arial,
 			TextSize = 12,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextWrapped = true,
-		}, nil)
-		for k, v in pairs(props) do lbl[k] = v end
-		lbl.Parent = parent
-		return lbl
-	end
-
-	local function groupBox(title, pos, size, parent)
-		local frame = create("Frame", {
-			Position = pos,
-			Size = size,
-			BackgroundColor3 = Color3.fromRGB(240, 240, 240),
 			BorderSizePixel = 0,
-		}, parent)
-		makeCorner(3, frame)
-		makeStroke(Color3.fromRGB(160, 160, 160), 1, frame)
-		makeLabel({
-			Position = UDim2.fromOffset(8, -9),
-			Size = UDim2.fromOffset(#title * 7 + 8, 16),
-			Text = title,
-			TextSize = 11,
-			Font = Enum.Font.GothamBold,
-			BackgroundColor3 = Color3.fromRGB(240, 240, 240),
-			BackgroundTransparency = 0,
-			TextXAlignment = Enum.TextXAlignment.Center,
-			ZIndex = 3,
-		}, frame)
-		return frame
+		}
+		for k, v in pairs(props) do d[k] = v end
+		local l = Instance.new("TextLabel")
+		for k, v in pairs(d) do l[k] = v end
+		l.Parent = parent
+		return l
 	end
 
-	local function makeButton(text, color, pos, size, parent)
-		local btn = create("TextButton", {
-			Position = pos,
-			Size = size,
-			BackgroundColor3 = color,
-			Text = text,
+	local function btn(props, parent)
+		local d = {
+			BackgroundColor3 = Color3.fromRGB(0, 120, 212),
 			TextColor3 = Color3.fromRGB(255, 255, 255),
 			Font = Enum.Font.GothamBold,
 			TextSize = 11,
 			BorderSizePixel = 0,
-			ZIndex = 2,
-		}, parent)
-		makeCorner(3, btn)
-		btn.MouseEnter:Connect(function()
-			TweenService:Create(btn, TweenInfo.new(0.1), {
-				BackgroundColor3 = Color3.fromRGB(
-					math.clamp(color.R * 255 - 20, 0, 255),
-					math.clamp(color.G * 255 - 20, 0, 255),
-					math.clamp(color.B * 255 - 20, 0, 255)
-				)
-			}):Play()
-		end)
-		btn.MouseLeave:Connect(function()
-			TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = color}):Play()
-		end)
-		return btn
+			AutoButtonColor = true,
+		}
+		for k, v in pairs(props) do d[k] = v end
+		local b = Instance.new("TextButton")
+		for k, v in pairs(d) do b[k] = v end
+		b.Parent = parent
+		corner(3, b)
+		return b
 	end
 
-	local function makeRadio(text, pos, parent)
-		local frame = create("Frame", {
+	local function group(title, pos, size, parent)
+		local f = create("Frame", {
 			Position = pos,
-			Size = UDim2.fromOffset(130, 18),
-			BackgroundTransparency = 1,
+			Size = size,
+			BackgroundColor3 = Color3.fromRGB(240, 240, 240),
+			BorderSizePixel = 0,
+			ClipsDescendants = false,
 		}, parent)
-		local dot = create("Frame", {
-			Size = UDim2.fromOffset(14, 14),
-			Position = UDim2.fromOffset(0, 2),
+		stroke(Color3.fromRGB(160, 160, 160), 1, f)
+		corner(3, f)
+		local bg = create("Frame", {
+			Position = UDim2.fromOffset(6, -1),
+			Size = UDim2.fromOffset(#title * 7 + 4, 14),
+			BackgroundColor3 = Color3.fromRGB(240, 240, 240),
+			BorderSizePixel = 0,
+			ZIndex = 4,
+		}, f)
+		label({
+			Size = UDim2.fromScale(1, 1),
+			Text = title,
+			TextSize = 11,
+			Font = Enum.Font.GothamBold,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			ZIndex = 5,
+		}, bg)
+		return f
+	end
+
+	local function radio(pos, parent)
+		local f = create("Frame", {
+			Position = pos,
+			Size = UDim2.fromOffset(16, 16),
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BorderSizePixel = 0,
-		}, frame)
-		makeCorner(7, dot)
-		makeStroke(Color3.fromRGB(150, 150, 150), 1.5, dot)
-		local inner = create("Frame", {
-			Size = UDim2.fromOffset(8, 8),
+			ZIndex = 3,
+		}, parent)
+		corner(8, f)
+		stroke(Color3.fromRGB(150, 150, 150), 1.5, f)
+		local dot = create("Frame", {
 			Position = UDim2.new(0.5, -4, 0.5, -4),
+			Size = UDim2.fromOffset(8, 8),
 			BackgroundColor3 = Color3.fromRGB(0, 120, 212),
 			BorderSizePixel = 0,
 			Visible = false,
-		}, dot)
-		makeCorner(4, inner)
-		makeLabel({Position = UDim2.fromOffset(18, 0), Size = UDim2.fromOffset(110, 18), Text = text, TextSize = 12}, frame)
-		local btn = create("TextButton", {
-			Size = UDim2.fromScale(1, 1),
-			BackgroundTransparency = 1,
-			Text = "",
-			ZIndex = 2,
-		}, frame)
-		return frame, inner, btn
+			ZIndex = 4,
+		}, f)
+		corner(4, dot)
+		return f, dot
 	end
 
-	local function makeCheckbox(text, pos, parent)
-		local frame = create("Frame", {
+	local function checkbox(pos, parent)
+		local f = create("Frame", {
 			Position = pos,
-			Size = UDim2.fromOffset(160, 18),
-			BackgroundTransparency = 1,
-		}, parent)
-		local box = create("Frame", {
-			Size = UDim2.fromOffset(13, 13),
-			Position = UDim2.fromOffset(0, 2),
+			Size = UDim2.fromOffset(14, 14),
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BorderSizePixel = 0,
-		}, frame)
-		makeCorner(2, box)
-		makeStroke(Color3.fromRGB(150, 150, 150), 1.5, box)
-		local check = makeLabel({
+			ZIndex = 3,
+		}, parent)
+		corner(2, f)
+		stroke(Color3.fromRGB(150, 150, 150), 1.5, f)
+		local tick = label({
 			Size = UDim2.fromScale(1, 1),
 			Text = "✓",
 			TextSize = 11,
@@ -1150,138 +1126,133 @@ run(function()
 			TextColor3 = Color3.fromRGB(0, 120, 212),
 			TextXAlignment = Enum.TextXAlignment.Center,
 			Visible = false,
-		}, box)
-		makeLabel({Position = UDim2.fromOffset(17, 0), Size = UDim2.fromOffset(140, 18), Text = text, TextSize = 12}, frame)
-		local btn = create("TextButton", {
-			Size = UDim2.fromScale(1, 1),
-			BackgroundTransparency = 1,
-			Text = "",
-			ZIndex = 2,
-		}, frame)
-		local checked = false
-		btn.Activated:Connect(function()
-			checked = not checked
-			check.Visible = checked
-		end)
-		return frame, function() return checked end
+			ZIndex = 4,
+		}, f)
+		return f, tick
 	end
 
-	local function makeSpinner(val, min, max, dec, pos, size, parent)
-		local frame = create("Frame", {
+	local function spinner(val, mn, mx, dec, pos, size, parent)
+		local f = create("Frame", {
 			Position = pos,
 			Size = size,
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BorderSizePixel = 0,
+			ZIndex = 2,
 		}, parent)
-		makeCorner(2, frame)
-		makeStroke(Color3.fromRGB(160, 160, 160), 1, frame)
-		local numLbl = makeLabel({
+		corner(2, f)
+		stroke(Color3.fromRGB(160, 160, 160), 1, f)
+		local numLbl = label({
 			Position = UDim2.fromOffset(3, 0),
 			Size = UDim2.new(1, -18, 1, 0),
-			Text = tostring(val),
-			TextSize = 12,
-			TextXAlignment = Enum.TextXAlignment.Right,
+			Text = dec > 0 and string.format("%."..dec.."f", val) or tostring(val),
 			Font = Enum.Font.Code,
-		}, frame)
-		local btnFrame = create("Frame", {
+			TextSize = 11,
+			TextXAlignment = Enum.TextXAlignment.Right,
+			ZIndex = 3,
+		}, f)
+		local arrowFrame = create("Frame", {
 			Position = UDim2.new(1, -17, 0, 0),
-			Size = UDim2.fromOffset(17, frame.Size.Y.Offset),
+			Size = UDim2.fromOffset(17, size.Y.Offset),
 			BackgroundTransparency = 1,
-		}, frame)
-		makeStroke(Color3.fromRGB(160, 160, 160), 1, btnFrame)
-		local upBtn = create("TextButton", {
+			ZIndex = 3,
+		}, f)
+		stroke(Color3.fromRGB(180, 180, 180), 1, arrowFrame)
+		local up = create("TextButton", {
 			Size = UDim2.new(1, 0, 0.5, 0),
-			BackgroundColor3 = Color3.fromRGB(225, 225, 225),
-			Text = "▲",
-			TextSize = 8,
+			BackgroundColor3 = Color3.fromRGB(220, 220, 220),
+			Text = "▲", TextSize = 7,
 			Font = Enum.Font.Arial,
 			TextColor3 = Color3.fromRGB(50, 50, 50),
 			BorderSizePixel = 0,
-		}, btnFrame)
-		local downBtn = create("TextButton", {
+			AutoButtonColor = true,
+			ZIndex = 4,
+		}, arrowFrame)
+		local dn = create("TextButton", {
 			Position = UDim2.new(0, 0, 0.5, 0),
 			Size = UDim2.new(1, 0, 0.5, 0),
-			BackgroundColor3 = Color3.fromRGB(225, 225, 225),
-			Text = "▼",
-			TextSize = 8,
+			BackgroundColor3 = Color3.fromRGB(220, 220, 220),
+			Text = "▼", TextSize = 7,
 			Font = Enum.Font.Arial,
 			TextColor3 = Color3.fromRGB(50, 50, 50),
 			BorderSizePixel = 0,
-		}, btnFrame)
-		local current = val
-		local function update(delta)
-			current = math.clamp(math.floor((current + delta) * (10^dec) + 0.5) / (10^dec), min, max)
-			numLbl.Text = dec > 0 and string.format("%."..dec.."f", current) or tostring(current)
+			AutoButtonColor = true,
+			ZIndex = 4,
+		}, arrowFrame)
+		local cur = val
+		local step = dec > 0 and (1 / 10^dec) or 1
+		local function upd(d)
+			cur = math.clamp(math.floor((cur + d) * 1000 + 0.5) / 1000, mn, mx)
+			numLbl.Text = dec > 0 and string.format("%."..dec.."f", cur) or tostring(math.floor(cur))
 		end
-		upBtn.Activated:Connect(function() update(dec > 0 and 10^(-dec) or 1) end)
-		downBtn.Activated:Connect(function() update(-(dec > 0 and 10^(-dec) or 1)) end)
-		return frame, function() return current end
+		up.Activated:Connect(function() upd(step) end)
+		dn.Activated:Connect(function() upd(-step) end)
+		return f, function() return cur end
 	end
 
-	-- Build ScreenGui
+	-- Build window
 	local sg = create("ScreenGui", {
 		Name = "AutoClickerUI",
 		ResetOnSpawn = false,
 		DisplayOrder = 1000,
 		IgnoreGuiInset = true,
+		Enabled = false,
 	}, playerGui)
 
 	local win = create("Frame", {
-		Size = UDim2.fromOffset(480, 420),
-		Position = UDim2.new(0.5, -240, 0.5, -210),
+		Size = UDim2.fromOffset(490, 430),
+		Position = UDim2.new(0.5, -245, 0.5, -215),
 		BackgroundColor3 = Color3.fromRGB(240, 240, 240),
 		BorderSizePixel = 0,
 		Active = true,
+		ClipsDescendants = false,
 	}, sg)
-	makeCorner(4, win)
-	makeStroke(Color3.fromRGB(140, 140, 140), 1.5, win)
+	corner(4, win)
+	stroke(Color3.fromRGB(120, 120, 120), 1.5, win)
 
 	-- Titlebar
-	local titlebar = create("Frame", {
-		Size = UDim2.new(1, 0, 0, 28),
+	local tbar = create("Frame", {
+		Size = UDim2.new(1, 0, 0, 26),
 		BackgroundColor3 = Color3.fromRGB(0, 120, 212),
 		BorderSizePixel = 0,
 		ZIndex = 5,
 	}, win)
-	makeCorner(4, titlebar)
-	makeLabel({
-		Size = UDim2.new(1, -80, 1, 0),
+	corner(4, tbar)
+	label({
 		Position = UDim2.fromOffset(8, 0),
-		Text = "🖱 Speed AutoClicker",
+		Size = UDim2.new(1, -36, 1, 0),
+		Text = "AutoClicker",
 		TextSize = 12,
 		Font = Enum.Font.GothamBold,
 		TextColor3 = Color3.fromRGB(255, 255, 255),
-		TextXAlignment = Enum.TextXAlignment.Left,
 		ZIndex = 6,
-	}, titlebar)
-
-	local closeBtn = create("TextButton", {
-		Position = UDim2.new(1, -26, 0, 4),
-		Size = UDim2.fromOffset(20, 20),
+	}, tbar)
+	local xBtn = create("TextButton", {
+		Position = UDim2.new(1, -24, 0, 4),
+		Size = UDim2.fromOffset(18, 18),
 		BackgroundColor3 = Color3.fromRGB(196, 43, 28),
-		Text = "✕",
-		TextColor3 = Color3.fromRGB(255, 255, 255),
-		TextSize = 11,
+		Text = "✕", TextSize = 10,
 		Font = Enum.Font.GothamBold,
+		TextColor3 = Color3.fromRGB(255, 255, 255),
 		BorderSizePixel = 0,
 		ZIndex = 7,
-	}, titlebar)
-	makeCorner(3, closeBtn)
-	closeBtn.Activated:Connect(function() sg:Destroy() end)
+		AutoButtonColor = true,
+	}, tbar)
+	corner(3, xBtn)
+	xBtn.Activated:Connect(function() sg.Enabled = false end)
 
-	-- Dragging
-	local dragging, dragStart, startPos
-	titlebar.InputBegan:Connect(function(i)
+	-- Drag
+	local dragging, dragStart, winStart
+	tbar.InputBegan:Connect(function(i)
 		if i.UserInputType == Enum.UserInputType.MouseButton1 then
 			dragging = true
 			dragStart = i.Position
-			startPos = win.Position
+			winStart = win.Position
 		end
 	end)
 	UserInputService.InputChanged:Connect(function(i)
 		if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then
-			local delta = i.Position - dragStart
-			win.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+			local d = i.Position - dragStart
+			win.Position = UDim2.new(winStart.X.Scale, winStart.X.Offset + d.X, winStart.Y.Scale, winStart.Y.Offset + d.Y)
 		end
 	end)
 	UserInputService.InputEnded:Connect(function(i)
@@ -1289,185 +1260,274 @@ run(function()
 	end)
 
 	local body = create("Frame", {
-		Position = UDim2.fromOffset(0, 28),
-		Size = UDim2.new(1, 0, 1, -28),
+		Position = UDim2.fromOffset(0, 26),
+		Size = UDim2.new(1, 0, 1, -26),
 		BackgroundTransparency = 1,
+		ClipsDescendants = false,
 	}, win)
 
-	-- Activation group
-	local actGroup = groupBox("Activation", UDim2.fromOffset(8, 16), UDim2.fromOffset(462, 62), body)
-	makeLabel({Position = UDim2.fromOffset(8, 18), Size = UDim2.fromOffset(90, 18), Text = "Activation Key:", TextSize = 12}, actGroup)
+	-- ACTIVATION group
+	local actG = group("Activation", UDim2.fromOffset(8, 14), UDim2.fromOffset(472, 65), body)
+	label({Position = UDim2.fromOffset(8, 18), Size = UDim2.fromOffset(88, 18), Text = "Activation Key:"}, actG)
 
-	local keyDisplay = create("TextButton", {
-		Position = UDim2.fromOffset(100, 15),
-		Size = UDim2.fromOffset(120, 20),
+	local keyBtn = create("TextButton", {
+		Position = UDim2.fromOffset(98, 15),
+		Size = UDim2.fromOffset(120, 22),
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 		Text = "XButton1",
-		TextSize = 12,
-		Font = Enum.Font.Code,
+		TextSize = 12, Font = Enum.Font.Code,
 		TextColor3 = Color3.fromRGB(30, 30, 30),
 		BorderSizePixel = 0,
-		ZIndex = 2,
-	}, actGroup)
-	makeCorner(2, keyDisplay)
-	makeStroke(Color3.fromRGB(160, 160, 160), 1, keyDisplay)
+		ZIndex = 3,
+		AutoButtonColor = false,
+	}, actG)
+	corner(2, keyBtn)
+	stroke(Color3.fromRGB(160, 160, 160), 1, keyBtn)
 
-	local selectBtn2 = makeButton("SELECT...", Color3.fromRGB(0, 120, 212), UDim2.fromOffset(228, 13), UDim2.fromOffset(80, 22), actGroup)
-	local chooseApps = makeButton("CHOOSE APPS", Color3.fromRGB(0, 120, 212), UDim2.fromOffset(314, 13), UDim2.fromOffset(100, 22), actGroup)
+	local selBtn = btn({Position = UDim2.fromOffset(224, 14), Size = UDim2.fromOffset(76, 24), Text = "SELECT..."}, actG)
+	btn({Position = UDim2.fromOffset(306, 14), Size = UDim2.fromOffset(100, 24), Text = "CHOOSE APPS"}, actG)
 
 	local listening = false
-	selectBtn2.Activated:Connect(function()
-		if listening then return end
-		listening = true
-		keyDisplay.Text = "Press a key..."
-		local conn
-		conn = UserInputService.InputBegan:Connect(function(input, gpe)
-			if gpe then return end
-			keyDisplay.Text = input.KeyCode ~= Enum.KeyCode.Unknown and input.KeyCode.Name or input.UserInputType.Name
+	local listenConn = nil
+	selBtn.Activated:Connect(function()
+		if listening then
 			listening = false
-			conn:Disconnect()
+			if listenConn then listenConn:Disconnect() listenConn = nil end
+			keyBtn.Text = "XButton1"
+			selBtn.Text = "SELECT..."
+			return
+		end
+		listening = true
+		selBtn.Text = "CANCEL"
+		keyBtn.Text = "Press key..."
+		listenConn = UserInputService.InputBegan:Connect(function(input, gpe)
+			if gpe then return end
+			if input.KeyCode ~= Enum.KeyCode.Unknown then
+				keyBtn.Text = input.KeyCode.Name
+			else
+				keyBtn.Text = input.UserInputType.Name
+			end
+			listening = false
+			selBtn.Text = "SELECT..."
+			listenConn:Disconnect()
+			listenConn = nil
 		end)
 	end)
 
-	makeLabel({Position = UDim2.fromOffset(8, 42), Size = UDim2.fromOffset(90, 18), Text = "Activation Mode:", TextSize = 12}, actGroup)
-	local holdRadio, holdInner, holdBtn = makeRadio("hold", UDim2.fromOffset(100, 38), actGroup)
-	local toggleRadio, toggleInner, toggleBtn = makeRadio("toggle", UDim2.fromOffset(178, 38), actGroup)
-	holdInner.Visible = true
-	local activeMode = "hold"
-	holdBtn.Activated:Connect(function() holdInner.Visible = true toggleInner.Visible = false activeMode = "hold" end)
-	toggleBtn.Activated:Connect(function() holdInner.Visible = false toggleInner.Visible = true activeMode = "toggle" end)
+	label({Position = UDim2.fromOffset(8, 44), Size = UDim2.fromOffset(95, 18), Text = "Activation Mode:"}, actG)
+	local hFrame, hDot = radio(UDim2.fromOffset(106, 42), actG)
+	label({Position = UDim2.fromOffset(124, 42), Size = UDim2.fromOffset(40, 18), Text = "hold"}, actG)
+	local tFrame, tDot = radio(UDim2.fromOffset(170, 42), actG)
+	label({Position = UDim2.fromOffset(188, 42), Size = UDim2.fromOffset(50, 18), Text = "toggle"}, actG)
+	hDot.Visible = true
+	local hClick = create("TextButton", {Position = UDim2.fromOffset(104, 40), Size = UDim2.fromOffset(60, 20), BackgroundTransparency = 1, Text = "", ZIndex = 5}, actG)
+	local tClick = create("TextButton", {Position = UDim2.fromOffset(168, 40), Size = UDim2.fromOffset(70, 20), BackgroundTransparency = 1, Text = "", ZIndex = 5}, actG)
+	hClick.Activated:Connect(function() hDot.Visible = true tDot.Visible = false end)
+	tClick.Activated:Connect(function() hDot.Visible = false tDot.Visible = true end)
 
-	-- Clicks group (mouse diagram)
-	local clickGroup = groupBox("Clicks", UDim2.fromOffset(8, 90), UDim2.fromOffset(462, 110), body)
+	-- CLICKS group
+	local clkG = group("Clicks", UDim2.fromOffset(8, 90), UDim2.fromOffset(472, 112), body)
 
-	-- Mouse SVG-style in Roblox frames
-	local mouseFrame = create("Frame", {
-		Position = UDim2.fromOffset(140, 12),
-		Size = UDim2.fromOffset(80, 90),
-		BackgroundColor3 = Color3.fromRGB(220, 210, 195),
+	-- Mouse body
+	local mBody = create("Frame", {
+		Position = UDim2.fromOffset(155, 10),
+		Size = UDim2.fromOffset(80, 88),
+		BackgroundColor3 = Color3.fromRGB(215, 205, 190),
 		BorderSizePixel = 0,
 		ZIndex = 2,
-	}, clickGroup)
-	makeCorner(30, mouseFrame)
-	makeStroke(Color3.fromRGB(160, 150, 140), 1.5, mouseFrame)
+	}, clkG)
+	corner(28, mBody)
+	stroke(Color3.fromRGB(160, 150, 135), 1.5, mBody)
 
-	local leftHalf = create("Frame", {
-		Size = UDim2.new(0.5, 0, 0, 38),
-		BackgroundColor3 = Color3.fromRGB(220, 210, 195),
+	local mLeft = create("Frame", {
+		Size = UDim2.fromOffset(39, 36),
+		Position = UDim2.fromOffset(0, 0),
+		BackgroundColor3 = Color3.fromRGB(215, 205, 190),
 		BorderSizePixel = 0,
 		ZIndex = 3,
-	}, mouseFrame)
-	makeStroke(Color3.fromRGB(160, 150, 140), 1, leftHalf)
+		ClipsDescendants = true,
+	}, mBody)
+	stroke(Color3.fromRGB(160, 150, 135), 1, mLeft)
 
-	local rightHalf = create("Frame", {
-		Position = UDim2.new(0.5, 0, 0, 0),
-		Size = UDim2.new(0.5, 0, 0, 38),
-		BackgroundColor3 = Color3.fromRGB(220, 210, 195),
+	local mRight = create("Frame", {
+		Size = UDim2.fromOffset(41, 36),
+		Position = UDim2.fromOffset(39, 0),
+		BackgroundColor3 = Color3.fromRGB(215, 205, 190),
 		BorderSizePixel = 0,
 		ZIndex = 3,
-	}, mouseFrame)
-	makeStroke(Color3.fromRGB(160, 150, 140), 1, rightHalf)
+		ClipsDescendants = true,
+	}, mBody)
+	stroke(Color3.fromRGB(160, 150, 135), 1, mRight)
 
-	local scrollWheel = create("Frame", {
-		Position = UDim2.new(0.5, -8, 0, 14),
-		Size = UDim2.fromOffset(16, 22),
-		BackgroundColor3 = Color3.fromRGB(190, 190, 190),
+	local mScroll = create("Frame", {
+		Position = UDim2.new(0.5, -7, 0, 12),
+		Size = UDim2.fromOffset(14, 20),
+		BackgroundColor3 = Color3.fromRGB(185, 185, 185),
 		BorderSizePixel = 0,
 		ZIndex = 5,
-	}, mouseFrame)
-	makeCorner(8, scrollWheel)
-	makeStroke(Color3.fromRGB(160, 160, 160), 1, scrollWheel)
+	}, mBody)
+	corner(7, mScroll)
+	stroke(Color3.fromRGB(155, 155, 155), 1, mScroll)
 
-	local selectedSide = "left"
+	local selectedMouse = "left"
 	local function highlightMouse(side)
-		selectedSide = side
-		leftHalf.BackgroundColor3 = side == "left" and Color3.fromRGB(180, 210, 240) or Color3.fromRGB(220, 210, 195)
-		rightHalf.BackgroundColor3 = side == "right" and Color3.fromRGB(180, 210, 240) or Color3.fromRGB(220, 210, 195)
-		scrollWheel.BackgroundColor3 = side == "middle" and Color3.fromRGB(180, 210, 240) or Color3.fromRGB(190, 190, 190)
+		selectedMouse = side
+		mLeft.BackgroundColor3 = side == "left" and Color3.fromRGB(160, 200, 235) or Color3.fromRGB(215, 205, 190)
+		mRight.BackgroundColor3 = side == "right" and Color3.fromRGB(160, 200, 235) or Color3.fromRGB(215, 205, 190)
+		mScroll.BackgroundColor3 = side == "middle" and Color3.fromRGB(160, 200, 235) or Color3.fromRGB(185, 185, 185)
 	end
 	highlightMouse("left")
 
-	local leftBtn2 = create("TextButton", {Size = UDim2.fromScale(1,1), BackgroundTransparency = 1, Text = "", ZIndex = 6}, leftHalf)
-	local rightBtn2 = create("TextButton", {Size = UDim2.fromScale(1,1), BackgroundTransparency = 1, Text = "", ZIndex = 6}, rightHalf)
-	local midBtn2 = create("TextButton", {Size = UDim2.fromScale(1,1), BackgroundTransparency = 1, Text = "", ZIndex = 6}, scrollWheel)
-	leftBtn2.Activated:Connect(function() highlightMouse("left") end)
-	rightBtn2.Activated:Connect(function() highlightMouse("right") end)
-	midBtn2.Activated:Connect(function() highlightMouse("middle") end)
+	create("TextButton", {Size = UDim2.fromScale(1,1), BackgroundTransparency=1, Text="", ZIndex=6}, mLeft).Activated:Connect(function() highlightMouse("left") end)
+	create("TextButton", {Size = UDim2.fromScale(1,1), BackgroundTransparency=1, Text="", ZIndex=6}, mRight).Activated:Connect(function() highlightMouse("right") end)
+	create("TextButton", {Size = UDim2.fromScale(1,1), BackgroundTransparency=1, Text="", ZIndex=7}, mScroll).Activated:Connect(function() highlightMouse("middle") end)
 
-	-- Radio buttons for click side
-	local lRadio, lInner, lBtn2 = makeRadio("left Mouse Button\nLButton", UDim2.fromOffset(8, 14), clickGroup)
-	local mRadio, mInner, mBtn2 = makeRadio("middle Button\nMButton", UDim2.fromOffset(240, 14), clickGroup)
-	local rRadio, rInner, rBtn2 = makeRadio("right Mouse Button\nRButton", UDim2.fromOffset(240, 55), clickGroup)
-	lInner.Visible = true
-	lBtn2.Activated:Connect(function() lInner.Visible=true mInner.Visible=false rInner.Visible=false highlightMouse("left") end)
-	mBtn2.Activated:Connect(function() lInner.Visible=false mInner.Visible=true rInner.Visible=false highlightMouse("middle") end)
-	rBtn2.Activated:Connect(function() lInner.Visible=false mInner.Visible=false rInner.Visible=true highlightMouse("right") end)
+	-- Radio buttons left side
+	local lrF, lrD = radio(UDim2.fromOffset(8, 38), clkG)
+	label({Position = UDim2.fromOffset(28, 35), Size = UDim2.fromOffset(120, 18), Text = "left Mouse Button"}, clkG)
+	label({Position = UDim2.fromOffset(28, 50), Size = UDim2.fromOffset(120, 18), Text = "LButton", Font = Enum.Font.GothamBold, TextSize = 11}, clkG)
+	create("TextButton", {Position = UDim2.fromOffset(6, 33), Size = UDim2.fromOffset(140, 28), BackgroundTransparency=1, Text="", ZIndex=5}, clkG).Activated:Connect(function()
+		lrD.Visible=true mrD.Visible=false rrD.Visible=false highlightMouse("left")
+	end)
 
-	-- Click rate group
-	local rateGroup = groupBox("Click rate", UDim2.fromOffset(8, 212), UDim2.fromOffset(228, 90), body)
-	local cpsSpinner, getCPS = makeSpinner(12, 1, 999, 2, UDim2.fromOffset(8, 18), UDim2.fromOffset(90, 22), rateGroup)
-	makeLabel({Position = UDim2.fromOffset(102, 20), Size = UDim2.fromOffset(120, 18), Text = "Clicks per second", TextSize = 12}, rateGroup)
-	local unlimitedBox, getUnlimited = makeCheckbox("unlimited", UDim2.fromOffset(8, 46), rateGroup)
-	local randomBox, getRandom = makeCheckbox("random", UDim2.fromOffset(90, 46), rateGroup)
-	makeLabel({Position = UDim2.fromOffset(8, 68), Size = UDim2.fromOffset(80, 18), Text = "Click duty cycle:", TextSize = 11}, rateGroup)
-	local dutySpinner, getDuty = makeSpinner(50, 1, 99, 2, UDim2.fromOffset(140, 65), UDim2.fromOffset(72, 22), rateGroup)
-	makeLabel({Position = UDim2.fromOffset(214, 68), Size = UDim2.fromOffset(12, 18), Text = "%", TextSize = 12}, rateGroup)
+	-- Radio buttons right side
+	local mrF, mrD = radio(UDim2.fromOffset(252, 18), clkG)
+	label({Position = UDim2.fromOffset(272, 15), Size = UDim2.fromOffset(140, 18), Text = "middle Mouse Button"}, clkG)
+	label({Position = UDim2.fromOffset(272, 28), Size = UDim2.fromOffset(140, 18), Text = "MButton", Font = Enum.Font.GothamBold, TextSize = 11}, clkG)
+	create("TextButton", {Position = UDim2.fromOffset(250, 13), Size = UDim2.fromOffset(180, 28), BackgroundTransparency=1, Text="", ZIndex=5}, clkG).Activated:Connect(function()
+		lrD.Visible=false mrD.Visible=true rrD.Visible=false highlightMouse("middle")
+	end)
 
-	-- Click limit group
-	local limitGroup = groupBox("Click limit", UDim2.fromOffset(242, 212), UDim2.fromOffset(228, 90), body)
-	local limitBox, getLimit = makeCheckbox("Enable Click Limit", UDim2.fromOffset(8, 18), limitGroup)
-	makeLabel({Position = UDim2.fromOffset(8, 46), Size = UDim2.fromOffset(60, 18), Text = "Maximum", TextSize = 12}, limitGroup)
-	local limitSpinner, getLimitVal = makeSpinner(0, 0, 99999, 0, UDim2.fromOffset(70, 43), UDim2.fromOffset(80, 22), limitGroup)
-	makeLabel({Position = UDim2.fromOffset(154, 46), Size = UDim2.fromOffset(40, 18), Text = "Clicks", TextSize = 12}, limitGroup)
+	local rrF, rrD = radio(UDim2.fromOffset(252, 60), clkG)
+	label({Position = UDim2.fromOffset(272, 57), Size = UDim2.fromOffset(140, 18), Text = "right Mouse Button"}, clkG)
+	label({Position = UDim2.fromOffset(272, 70), Size = UDim2.fromOffset(140, 18), Text = "RButton", Font = Enum.Font.GothamBold, TextSize = 11}, clkG)
+	create("TextButton", {Position = UDim2.fromOffset(250, 55), Size = UDim2.fromOffset(180, 28), BackgroundTransparency=1, Text="", ZIndex=5}, clkG).Activated:Connect(function()
+		lrD.Visible=false mrD.Visible=false rrD.Visible=true highlightMouse("right")
+	end)
+	lrD.Visible = true
 
-	-- Mode group (vape specific)
-	local modeGroup = groupBox("Mode  [vape]", UDim2.fromOffset(8, 314), UDim2.fromOffset(462, 52), body)
-	makeLabel({Position = UDim2.fromOffset(8, 18), Size = UDim2.fromOffset(40, 18), Text = "Mode:", TextSize = 12}, modeGroup)
+	-- CLICK RATE group
+	local rateG = group("Click rate", UDim2.fromOffset(8, 214), UDim2.fromOffset(232, 95), body)
+	local _, getCPS2 = spinner(12, 1, 999, 2, UDim2.fromOffset(8, 18), UDim2.fromOffset(88, 22), rateG)
+	label({Position = UDim2.fromOffset(100, 20), Size = UDim2.fromOffset(125, 18), Text = "Clicks per second"}, rateG)
 
-	local modeDropdown = create("TextButton", {
-		Position = UDim2.fromOffset(52, 15),
-		Size = UDim2.fromOffset(90, 22),
-		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-		Text = "Click ▼",
-		TextSize = 11,
-		Font = Enum.Font.Code,
-		TextColor3 = Color3.fromRGB(30, 30, 30),
-		BorderSizePixel = 0,
-		ZIndex = 2,
-	}, modeGroup)
-	makeCorner(2, modeDropdown)
-	makeStroke(Color3.fromRGB(160, 160, 160), 1, modeDropdown)
+	local ulBox, ulTick = checkbox(UDim2.fromOffset(8, 48), rateG)
+	label({Position = UDim2.fromOffset(26, 46), Size = UDim2.fromOffset(65, 18), Text = "unlimited"}, rateG)
+	local ulBtn = create("TextButton", {Position = UDim2.fromOffset(6, 44), Size = UDim2.fromOffset(90, 22), BackgroundTransparency=1, Text="", ZIndex=5}, rateG)
+	local ulChecked = false
+	ulBtn.Activated:Connect(function() ulChecked = not ulChecked ulTick.Visible = ulChecked end)
+
+	local rdBox, rdTick = checkbox(UDim2.fromOffset(110, 48), rateG)
+	label({Position = UDim2.fromOffset(128, 46), Size = UDim2.fromOffset(50, 18), Text = "random"}, rateG)
+	local rdBtn = create("TextButton", {Position = UDim2.fromOffset(108, 44), Size = UDim2.fromOffset(80, 22), BackgroundTransparency=1, Text="", ZIndex=5}, rateG)
+	local rdChecked = false
+	rdBtn.Activated:Connect(function() rdChecked = not rdChecked rdTick.Visible = rdChecked end)
+
+	label({Position = UDim2.fromOffset(8, 72), Size = UDim2.fromOffset(90, 18), Text = "Click duty cycle:"}, rateG)
+	local _, getDuty = spinner(50, 1, 99, 2, UDim2.fromOffset(148, 69), UDim2.fromOffset(68, 22), rateG)
+	label({Position = UDim2.fromOffset(218, 72), Size = UDim2.fromOffset(12, 18), Text = "%"}, rateG)
+
+	-- CLICK LIMIT group
+	local limitG = group("Click limit", UDim2.fromOffset(246, 214), UDim2.fromOffset(234, 95), body)
+	local lmBox, lmTick = checkbox(UDim2.fromOffset(8, 20), limitG)
+	label({Position = UDim2.fromOffset(26, 18), Size = UDim2.fromOffset(150, 18), Text = "Enable Click Limit"}, limitG)
+	local lmBtn = create("TextButton", {Position = UDim2.fromOffset(6, 16), Size = UDim2.fromOffset(190, 22), BackgroundTransparency=1, Text="", ZIndex=5}, limitG)
+	local lmChecked = false
+	lmBtn.Activated:Connect(function() lmChecked = not lmChecked lmTick.Visible = lmChecked end)
+
+	label({Position = UDim2.fromOffset(8, 48), Size = UDim2.fromOffset(62, 18), Text = "Maximum"}, limitG)
+	local _, getLimitV = spinner(0, 0, 99999, 0, UDim2.fromOffset(72, 45), UDim2.fromOffset(88, 22), limitG)
+	label({Position = UDim2.fromOffset(164, 48), Size = UDim2.fromOffset(40, 18), Text = "Clicks"}, limitG)
+
+	-- MODE group
+	local modeG = group("Mode  [vape]", UDim2.fromOffset(8, 320), UDim2.fromOffset(472, 50), body)
+	label({Position = UDim2.fromOffset(8, 17), Size = UDim2.fromOffset(40, 18), Text = "Mode:"}, modeG)
 
 	local modes = {"Tool", "Click", "RightClick"}
 	local modeIdx = 2
-	modeDropdown.Activated:Connect(function()
+	local modeBtn = create("TextButton", {
+		Position = UDim2.fromOffset(52, 14),
+		Size = UDim2.fromOffset(88, 22),
+		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+		Text = "Click ▼",
+		TextSize = 11, Font = Enum.Font.Code,
+		TextColor3 = Color3.fromRGB(30, 30, 30),
+		BorderSizePixel = 0,
+		ZIndex = 3,
+		AutoButtonColor = false,
+	}, modeG)
+	corner(2, modeBtn)
+	stroke(Color3.fromRGB(160, 160, 160), 1, modeBtn)
+	modeBtn.Activated:Connect(function()
 		modeIdx = modeIdx % #modes + 1
-		modeDropdown.Text = modes[modeIdx] .. " ▼"
+		modeBtn.Text = modes[modeIdx] .. " ▼"
 	end)
 
-	makeLabel({Position = UDim2.fromOffset(160, 18), Size = UDim2.fromOffset(55, 18), Text = "Min CPS:", TextSize = 12}, modeGroup)
-	local minSpinner, getMin = makeSpinner(8, 1, 20, 0, UDim2.fromOffset(215, 15), UDim2.fromOffset(60, 22), modeGroup)
-	makeLabel({Position = UDim2.fromOffset(282, 18), Size = UDim2.fromOffset(55, 18), Text = "Max CPS:", TextSize = 12}, modeGroup)
-	local maxSpinner, getMax = makeSpinner(12, 1, 20, 0, UDim2.fromOffset(337, 15), UDim2.fromOffset(60, 22), modeGroup)
+	label({Position = UDim2.fromOffset(152, 17), Size = UDim2.fromOffset(55, 18), Text = "Min CPS:"}, modeG)
+	local _, getMin = spinner(8, 1, 20, 0, UDim2.fromOffset(208, 14), UDim2.fromOffset(60, 22), modeG)
+	label({Position = UDim2.fromOffset(275, 17), Size = UDim2.fromOffset(55, 18), Text = "Max CPS:"}, modeG)
+	local _, getMax = spinner(12, 1, 20, 0, UDim2.fromOffset(331, 14), UDim2.fromOffset(60, 22), modeG)
 
-	-- Footer buttons
-	local resetBtn = makeButton("RESET SETTINGS", Color3.fromRGB(180, 40, 30), UDim2.fromOffset(8, 376), UDim2.fromOffset(130, 26), body)
-	local okBtn = makeButton("OK", Color3.fromRGB(0, 120, 212), UDim2.fromOffset(350, 376), UDim2.fromOffset(50, 26), body)
-	local exitBtn = makeButton("EXIT", Color3.fromRGB(100, 100, 100), UDim2.fromOffset(408, 376), UDim2.fromOffset(50, 26), body)
-
-	resetBtn.Activated:Connect(function()
+	-- Footer
+	btn({
+		Position = UDim2.fromOffset(8, 382),
+		Size = UDim2.fromOffset(130, 26),
+		Text = "RESET SETTINGS",
+		BackgroundColor3 = Color3.fromRGB(180, 40, 30),
+	}, body).Activated:Connect(function()
 		modeIdx = 2
-		modeDropdown.Text = "Click ▼"
+		modeBtn.Text = "Click ▼"
 	end)
 
-	exitBtn.Activated:Connect(function() sg:Destroy() end)
+	btn({
+		Position = UDim2.fromOffset(356, 382),
+		Size = UDim2.fromOffset(55, 26),
+		Text = "OK",
+	}, body).Activated:Connect(function()
+		if AutoClicker then AutoClicker:Toggle(true) end
+	end)
 
-	-- Hook up to vape autoclicker module
+	btn({
+		Position = UDim2.fromOffset(418, 382),
+		Size = UDim2.fromOffset(55, 26),
+		Text = "EXIT",
+		BackgroundColor3 = Color3.fromRGB(100, 100, 100),
+	}, body).Activated:Connect(function()
+		sg.Enabled = false
+	end)
+
+	-- Right click context menu on AutoClicker module button
+	local contextMenu = create("Frame", {
+		Size = UDim2.fromOffset(100, 30),
+		BackgroundColor3 = Color3.fromRGB(245, 245, 245),
+		BorderSizePixel = 0,
+		Visible = false,
+		ZIndex = 100,
+	}, playerGui:WaitForChild("vape", 10) and playerGui or sg)
+	corner(4, contextMenu)
+	stroke(Color3.fromRGB(160, 160, 160), 1, contextMenu)
+
+	local guiMenuBtn = create("TextButton", {
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		Text = "  🖥 GUI",
+		TextSize = 12,
+		Font = Enum.Font.Gotham,
+		TextColor3 = Color3.fromRGB(20, 20, 20),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		ZIndex = 101,
+	}, contextMenu)
+	guiMenuBtn.Activated:Connect(function()
+		contextMenu.Visible = false
+		sg.Enabled = true
+	end)
+
+	-- AutoClicker module
 	AutoClicker = vape.Categories.Combat:CreateModule({
 		Name = 'AutoClicker',
+		Tooltip = 'Automatically clicks for you',
 		Function = function(callback)
 			if callback then
-				sg.Enabled = true
 				repeat
 					local currentMode = modes[modeIdx]
 					if currentMode == 'Tool' then
@@ -1490,102 +1550,43 @@ run(function()
 				sg.Enabled = false
 			end
 		end,
-		Tooltip = 'Automatically clicks for you'
 	})
 
-	okBtn.Activated:Connect(function()
-		if AutoClicker then
-			AutoClicker:Toggle(true)
+	Mode = AutoClicker:CreateDropdown({
+		Name = 'Mode',
+		List = {'Tool', 'Click', 'RightClick'},
+		Tooltip = 'Tool - uses roblox tools\nClick - Left click\nRightClick - Right click'
+	})
+
+	CPS = AutoClicker:CreateTwoSlider({
+		Name = 'CPS',
+		Min = 1,
+		Max = 20,
+		DefaultMin = 8,
+		DefaultMax = 12
+	})
+
+	-- Right click detection on the vape module button
+	task.spawn(function()
+		task.wait(1)
+		local success, moduleObj = pcall(function() return AutoClicker.Object end)
+		if success and moduleObj then
+			moduleObj.MouseButton2Click:Connect(function()
+				local mouse = lplr:GetMouse()
+				contextMenu.Position = UDim2.fromOffset(mouse.X, mouse.Y)
+				contextMenu.Visible = true
+				contextMenu.Parent = playerGui
+			end)
 		end
 	end)
-end)
-	
-run(function()
-	local Reach
-	local Targets
-	local Mode
-	local Value
-	local Chance
-	local Overlay = OverlapParams.new()
-	Overlay.FilterType = Enum.RaycastFilterType.Include
-	local modified = {}
-	
-	Reach = vape.Categories.Combat:CreateModule({
-		Name = 'Reach',
-		Function = function(callback)
-			if callback then
-				repeat
-					local tool = getTool()
-					tool = tool and tool:FindFirstChildWhichIsA('TouchTransmitter', true)
-					if tool then
-						if Mode.Value == 'TouchInterest' then
-							local entites = {}
-							for _, v in entitylib.List do
-								if v.Targetable then
-									if not Targets.Players.Enabled and v.Player then continue end
-									if not Targets.NPCs.Enabled and v.NPC then continue end
-									table.insert(entites, v.Character)
-								end
-							end
-	
-							Overlay.FilterDescendantsInstances = entites
-							local parts = workspace:GetPartBoundsInBox(tool.Parent.CFrame * CFrame.new(0, 0, Value.Value / 2), tool.Parent.Size + Vector3.new(0, 0, Value.Value), Overlay)
-	
-							for _, v in parts do
-								if Random.new().NextNumber(Random.new(), 0, 100) > Chance.Value then
-									task.wait(0.2)
-									break
-								end
-	
-								firetouchinterest(tool.Parent, v, 1)
-								firetouchinterest(tool.Parent, v, 0)
-							end
-						else
-							if not modified[tool.Parent] then
-								modified[tool.Parent] = tool.Parent.Size
-							end
-							tool.Parent.Size = modified[tool.Parent] + Vector3.new(0, 0, Value.Value)
-							tool.Parent.Massless = true
-						end
-					end
-	
-					task.wait()
-				until not Reach.Enabled
-			else
-				for i, v in modified do
-					i.Size = v
-					i.Massless = false
-				end
-				table.clear(modified)
+
+	UserInputService.InputBegan:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseButton1 then
+			if contextMenu.Visible then
+				contextMenu.Visible = false
 			end
-		end,
-		Tooltip = 'Extends tool attack reach'
-	})
-	Targets = Reach:CreateTargets({Players = true})
-	Mode = Reach:CreateDropdown({
-		Name = 'Mode',
-		List = {'TouchInterest', 'Resize'},
-		Function = function(val)
-			Chance.Object.Visible = val == 'TouchInterest'
-		end,
-		Tooltip = 'TouchInterest - Reports fake collision events to the server\nResize - Physically modifies the tools size'
-	})
-	Value = Reach:CreateSlider({
-		Name = 'Range',
-		Min = 0,
-		Max = 2,
-		Decimal = 10,
-		Suffix = function(val)
-			return val == 1 and 'stud' or 'studs'
 		end
-	})
-	Chance = Reach:CreateSlider({
-		Name = 'Chance',
-		Min = 0,
-		Max = 100,
-		Default = 100,
-		Suffix = '%'
-	})
+	end)
 end)
 	
 local mouseClicked
