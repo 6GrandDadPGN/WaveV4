@@ -10453,7 +10453,7 @@ run(function()
     BossHealth = NameTags:CreateToggle({
         Name = 'Boss Health',
         Default = true,
-        Tooltip = 'Shows current/max health on BHAA and Titan nametags',
+        Tooltip = 'Shows current/max health on Bhaa and Titan nametags',
         Function = function()
             if NameTags.Enabled then
                 NameTags:Toggle()
