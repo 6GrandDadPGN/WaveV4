@@ -12441,7 +12441,7 @@ run(function()
 
     NotifStyle = AutoLobby:CreateDropdown({
         Name = 'Notification Style',
-        Options = { 'Vape', 'BedWars' },
+        List = { 'Vape', 'BedWars' },
         Default = 'Vape',
         Tooltip = 'Choose which notification to show when teleporting to lobby'
     })
