@@ -12188,24 +12188,6 @@ run(function()
 	})
 end)
 
-run(function() 
-    local MatchHistory
-    
-    MatchHistory = vape.Categories.AltFarm:CreateModule({
-        Name = "MatchHistory",
-		Alias = {'ResetHistory','Clear Match History','Reset History','ClearMatchHistory','History'},
-        Tooltip = "Resets your match history",
-        Function = function(callback)    
-            if callback then 
-                MatchHistory:Toggle(false)
-                local TeleportService = game:GetService("TeleportService")
-                local data = TeleportService:GetLocalPlayerTeleportData()
-                MatchHistory:Clean(TeleportService:Teleport(game.PlaceId, lplr, data))
-            end
-        end,
-    }) 
-end)
-
 run(function()
     local lplr = game:GetService("Players").LocalPlayer
     local TeleportService = game:GetService("TeleportService")
@@ -16009,7 +15991,7 @@ end)
 run(function() 
     local MatchHistory
     
-    MatchHistory = vape.Categories.Utility:CreateModule({
+    MatchHistory = vape.Categories.AltFarm:CreateModule({
         Name = "ClearMatchHistory",
         Tooltip = "Resets ur match history",
         Function = function(callback)
