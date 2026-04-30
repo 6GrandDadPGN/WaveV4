@@ -2801,26 +2801,16 @@ run(function()
 	local nametagConnection = nil
 	local customName = "Me"
 
-	local function forceNames()
-		for element, _ in pairs(originalNames) do
-			if element and element.Parent then
-				if element.Text ~= customName then
-					element.Text = customName
-				end
-			else
-				originalNames[element] = nil
-			end
-		end
-	end
-
 	local function scanElement(element)
 		if not element:IsA("TextLabel") then return end
 		if element.Name ~= "PlayerName" and element.Name ~= "EntityName" and element.Name ~= "DisplayName" then return end
-		local text = originalNames[element] or element.Text
+		if originalNames[element] then
+			element.Text = customName
+			return
+		end
+		local text = element.Text
 		if text:find(lplr.Name, 1, true) or text:find(lplr.DisplayName, 1, true) then
-			if not originalNames[element] then
-				originalNames[element] = element.Text
-			end
+			originalNames[element] = text
 			element.Text = customName
 		end
 	end
@@ -2872,9 +2862,14 @@ run(function()
 				nametagConnection = runService.RenderStepped:Connect(function()
 					if not StreamProof.Enabled then return end
 					pcall(function()
-						-- force all tracked elements every frame
-						forceNames()
-						-- scan nametag every frame in case it respawns
+						for element, _ in pairs(originalNames) do
+							if element and element.Parent then
+								if element.Text ~= customName then
+									element.Text = customName
+								end
+							end
+						end
+
 						if lplr.Character then
 							local head = lplr.Character:FindFirstChild("Head")
 							if head then
