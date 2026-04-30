@@ -2799,28 +2799,10 @@ run(function()
 	local StreamProof
 	local originalNames = {}
 	local nametagConnection = nil
-	local customName = "sleep" -- Change this to whatever name you want
+	local customName = "6GrandDadPGN"
 	
 	local function modifyPlayerName(element)
-		if element:IsA("TextLabel") and element.Name == "PlayerName" then
-			if element.Text:find(lplr.Name) or element.Text:find(lplr.DisplayName) then
-				if not originalNames[element] then
-					originalNames[element] = element.Text
-				end
-				element.Text = customName
-			end
-		end
-		
-		if element:IsA("TextLabel") and element.Name == "EntityName" then
-			if element.Text:find(lplr.Name) or element.Text:find(lplr.DisplayName) then
-				if not originalNames[element] then
-					originalNames[element] = element.Text
-				end
-				element.Text = customName
-			end
-		end
-		
-		if element:IsA("TextLabel") and element.Name == "DisplayName" then
+		if element:IsA("TextLabel") and (element.Name == "PlayerName" or element.Name == "EntityName" or element.Name == "DisplayName") then
 			if element.Text:find(lplr.Name) or element.Text:find(lplr.DisplayName) then
 				if not originalNames[element] then
 					originalNames[element] = element.Text
@@ -2843,18 +2825,52 @@ run(function()
 		end
 	end
 	
+	local function refreshAll()
+		local existingTabList = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
+		if existingTabList then
+			for _, descendant in existingTabList:GetDescendants() do
+				if originalNames[descendant] then
+					descendant.Text = customName
+				end
+			end
+		end
+		
+		local existingKillFeed = lplr.PlayerGui:FindFirstChild("KillFeedGui")
+		if existingKillFeed then
+			for _, descendant in existingKillFeed:GetDescendants() do
+				if originalNames[descendant] then
+					descendant.Text = customName
+				end
+			end
+		end
+		
+		if lplr.Character then
+			local head = lplr.Character:FindFirstChild("Head")
+			if head then
+				local nametag = head:FindFirstChild("Nametag")
+				if nametag then
+					local displayNameContainer = nametag:FindFirstChild("DisplayNameContainer")
+					if displayNameContainer then
+						local displayName = displayNameContainer:FindFirstChild("DisplayName")
+						if displayName and displayName:IsA("TextLabel") then
+							if originalNames[displayName] then
+								displayName.Text = customName
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+
 	local function modifyNametag(character)
 		if not character then return end
-		
 		local head = character:FindFirstChild("Head")
 		if not head then return end
-		
 		local nametag = head:FindFirstChild("Nametag")
 		if not nametag then return end
-		
 		local displayNameContainer = nametag:FindFirstChild("DisplayNameContainer")
 		if not displayNameContainer then return end
-		
 		local displayName = displayNameContainer:FindFirstChild("DisplayName")
 		if displayName and displayName:IsA("TextLabel") then
 			modifyPlayerName(displayName)
@@ -2863,16 +2879,12 @@ run(function()
 	
 	local function restoreNametag(character)
 		if not character then return end
-		
 		local head = character:FindFirstChild("Head")
 		if not head then return end
-		
 		local nametag = head:FindFirstChild("Nametag")
 		if not nametag then return end
-		
 		local displayNameContainer = nametag:FindFirstChild("DisplayNameContainer")
 		if not displayNameContainer then return end
-		
 		local displayName = displayNameContainer:FindFirstChild("DisplayName")
 		if displayName and displayName:IsA("TextLabel") then
 			restorePlayerName(displayName)
@@ -2886,7 +2898,6 @@ run(function()
 				local existingTabList = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
 				if existingTabList then
 					processGui(existingTabList)
-					
 					StreamProof:Clean(existingTabList.DescendantAdded:Connect(function(descendant)
 						modifyPlayerName(descendant)
 					end))
@@ -2895,7 +2906,6 @@ run(function()
 				local existingKillFeed = lplr.PlayerGui:FindFirstChild("KillFeedGui")
 				if existingKillFeed then
 					processGui(existingKillFeed)
-					
 					StreamProof:Clean(existingKillFeed.DescendantAdded:Connect(function(descendant)
 						modifyPlayerName(descendant)
 					end))
@@ -2904,13 +2914,11 @@ run(function()
 				StreamProof:Clean(lplr.PlayerGui.ChildAdded:Connect(function(gui)
 					if gui.Name == "TabListScreenGui" then
 						processGui(gui)
-						
 						StreamProof:Clean(gui.DescendantAdded:Connect(function(descendant)
 							modifyPlayerName(descendant)
 						end))
 					elseif gui.Name == "KillFeedGui" then
 						processGui(gui)
-						
 						StreamProof:Clean(gui.DescendantAdded:Connect(function(descendant)
 							modifyPlayerName(descendant)
 						end))
@@ -2963,14 +2971,19 @@ run(function()
 				table.clear(originalNames)
 			end
 		end,
-		Tooltip = 'Hides your name as much as possible in TabList, KillFeed, and Nametag (made by max)',
-		TextBox = {
-			Placeholder = 'Custom Name...',
-			Default = customName,
-			Function = function(value)
-				customName = (value ~= "" and value) or "6GrandDadPGN"
+		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag (made by max)'
+	})
+
+	StreamProof:AddTextBox({
+		Name = 'Custom Name',
+		Default = customName,
+		Placeholder = 'Enter name...',
+		Function = function(value)
+			customName = (value ~= "" and value) or "6GrandDadPGN"
+			if StreamProof.Enabled then
+				refreshAll()
 			end
-		}
+		end
 	})
 end)
 	
