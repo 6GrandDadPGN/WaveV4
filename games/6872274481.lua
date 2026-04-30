@@ -2802,13 +2802,13 @@ run(function()
 
 	local function replaceInElement(element)
 		if not element or not element:IsA("TextLabel") then return end
-		if element.Name ~= "EntityName" then return end
+		if element.Name ~= "PlayerName" and element.Name ~= "EntityName" then return end
 		pcall(function()
 			local t = element.Text
-			if type(t) == "string" and t ~= customName then
-				if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
-					element.Text = customName
-				end
+			if type(t) ~= "string" then return end
+			if t == customName then return end
+			if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
+				element.Text = customName
 			end
 		end)
 	end
@@ -2826,31 +2826,34 @@ run(function()
 		Name = 'StreamProof',
 		Function = function(callback)
 			if callback then
-				-- handle KillFeedGui
-				local killFeed = lplr.PlayerGui:FindFirstChild("KillFeedGui")
-				if killFeed then
-					processGui(killFeed)
-					StreamProof:Clean(killFeed.DescendantAdded:Connect(function(desc)
-						replaceInElement(desc)
-					end))
-				end
-
-				-- handle TabListScreenGui added/removed dynamically
+				-- handle TabListScreenGui dynamically
 				StreamProof:Clean(lplr.PlayerGui.ChildAdded:Connect(function(gui)
 					if gui.Name == "TabListScreenGui" then
-						task.wait(0.1)
+						task.wait(0.3)
 						processGui(gui)
 						StreamProof:Clean(gui.DescendantAdded:Connect(function(desc)
+							task.wait()
 							replaceInElement(desc)
 						end))
 					end
 					if gui.Name == "KillFeedGui" then
 						processGui(gui)
 						StreamProof:Clean(gui.DescendantAdded:Connect(function(desc)
+							task.wait()
 							replaceInElement(desc)
 						end))
 					end
 				end))
+
+				-- handle already existing KillFeedGui
+				local killFeed = lplr.PlayerGui:FindFirstChild("KillFeedGui")
+				if killFeed then
+					processGui(killFeed)
+					StreamProof:Clean(killFeed.DescendantAdded:Connect(function(desc)
+						task.wait()
+						replaceInElement(desc)
+					end))
+				end
 
 				nametagConnection = runService.RenderStepped:Connect(function()
 					if not StreamProof.Enabled then return end
@@ -2872,13 +2875,12 @@ run(function()
 							end)
 						end
 
-						-- force EntityName in KillFeedGui every frame
-						local kf = lplr.PlayerGui:FindFirstChild("KillFeedGui")
-						if kf then processGui(kf) end
-
-						-- force EntityName in TabListScreenGui every frame
+						-- rescan TabList and KillFeed every frame
 						local tl = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
 						if tl then processGui(tl) end
+
+						local kf = lplr.PlayerGui:FindFirstChild("KillFeedGui")
+						if kf then processGui(kf) end
 					end)
 				end)
 
