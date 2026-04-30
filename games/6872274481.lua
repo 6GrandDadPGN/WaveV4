@@ -2802,12 +2802,12 @@ run(function()
 
 	local function replaceInElement(element)
 		if not element or not element:IsA("TextLabel") then return end
-		if element.Name ~= "EntityName" and element.Name ~= "DisplayName" then return end
+		if element.Name ~= "EntityName" then return end
 		pcall(function()
 			local t = element.Text
 			if type(t) == "string" and t ~= customName then
 				if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
-					element.Text = t:gsub(lplr.DisplayName, customName):gsub(lplr.Name, customName)
+					element.Text = customName
 				end
 			end
 		end)
@@ -2826,16 +2826,37 @@ run(function()
 		Name = 'StreamProof',
 		Function = function(callback)
 			if callback then
+				-- handle KillFeedGui
+				local killFeed = lplr.PlayerGui:FindFirstChild("KillFeedGui")
+				if killFeed then
+					processGui(killFeed)
+					StreamProof:Clean(killFeed.DescendantAdded:Connect(function(desc)
+						replaceInElement(desc)
+					end))
+				end
+
+				-- handle TabListScreenGui added/removed dynamically
+				StreamProof:Clean(lplr.PlayerGui.ChildAdded:Connect(function(gui)
+					if gui.Name == "TabListScreenGui" then
+						task.wait(0.1)
+						processGui(gui)
+						StreamProof:Clean(gui.DescendantAdded:Connect(function(desc)
+							replaceInElement(desc)
+						end))
+					end
+					if gui.Name == "KillFeedGui" then
+						processGui(gui)
+						StreamProof:Clean(gui.DescendantAdded:Connect(function(desc)
+							replaceInElement(desc)
+						end))
+					end
+				end))
+
 				nametagConnection = runService.RenderStepped:Connect(function()
 					if not StreamProof.Enabled then return end
 					pcall(function()
-						-- scan PlayerGui for EntityName labels
-						if lplr and lplr.PlayerGui then
-							processGui(lplr.PlayerGui)
-						end
-
-						-- nametag DisplayName
-						if lplr and lplr.Character then
+						-- nametag
+						if lplr.Character then
 							local head = lplr.Character:FindFirstChild("Head")
 							if not head then return end
 							local nametag = head:FindFirstChild("Nametag")
@@ -2845,12 +2866,19 @@ run(function()
 							local dn = dc:FindFirstChild("DisplayName")
 							if not dn or not dn:IsA("TextLabel") then return end
 							pcall(function()
-								local t = dn.Text
-								if type(t) == "string" and t ~= customName then
+								if dn.Text ~= customName then
 									dn.Text = customName
 								end
 							end)
 						end
+
+						-- force EntityName in KillFeedGui every frame
+						local kf = lplr.PlayerGui:FindFirstChild("KillFeedGui")
+						if kf then processGui(kf) end
+
+						-- force EntityName in TabListScreenGui every frame
+						local tl = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
+						if tl then processGui(tl) end
 					end)
 				end)
 
