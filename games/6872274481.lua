@@ -2803,7 +2803,8 @@ run(function()
 	
 	local function modifyPlayerName(element)
 		if element:IsA("TextLabel") and (element.Name == "PlayerName" or element.Name == "EntityName" or element.Name == "DisplayName") then
-			if element.Text:find(lplr.Name) or element.Text:find(lplr.DisplayName) then
+			local original = originalNames[element] or element.Text
+			if original:find(lplr.Name) or original:find(lplr.DisplayName) then
 				if not originalNames[element] then
 					originalNames[element] = element.Text
 				end
@@ -2946,7 +2947,7 @@ run(function()
 
 	StreamProof:CreateTextBox({
 		Name = 'Custom Name',
-		Default = 'sleep',
+		Default = 'Me',
 		Placeholder = 'Enter name...',
 		Function = function(value)
 			customName = (value ~= "" and value) or "Me"
