@@ -12146,11 +12146,9 @@ run(function()
     local TeleportService = game:GetService("TeleportService")
     local AutoLobby
     local Delay
-
     local function lobby()
         TeleportService:Teleport(6872265039, lplr)
     end
-
     AutoLobby = vape.Categories.AltFarm:CreateModule({
         Name = 'AutoLobby',
         Function = function(callback)
@@ -12159,11 +12157,17 @@ run(function()
                     task.wait(Delay.Value)
                     lobby()
                 end))
+
+                if vapeEvents.MatchLoseEvent then
+                    AutoLobby:Clean(vapeEvents.MatchLoseEvent.Event:Connect(function()
+                        task.wait(Delay.Value)
+                        lobby()
+                    end))
+                end
             end
         end,
-        Tooltip = 'Auto teleports to lobby after winning a match'
+        Tooltip = 'Auto teleports to lobby after a match ends'
     })
-
     Delay = AutoLobby:CreateSlider({
         Name = 'Delay',
         Min = 0,
@@ -12174,7 +12178,6 @@ run(function()
             return val == 1 and 'second' or 'seconds'
         end
     })
-
 end)
 
 run(function()
