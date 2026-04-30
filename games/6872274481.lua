@@ -2799,83 +2799,39 @@ run(function()
 	local StreamProof
 	local originalNames = {}
 	local nametagConnection = nil
-	local propertyConnections = {}
 	local customName = "Me"
 
-	local function attachWatcher(element)
-		if propertyConnections[element] then
-			propertyConnections[element]:Disconnect()
-			propertyConnections[element] = nil
-		end
-
-		propertyConnections[element] = element:GetPropertyChangedSignal("Text"):Connect(function()
-			if not StreamProof.Enabled then return end
-			if element.Text == customName then return end
-			local newText = element.Text
-			if newText:find(lplr.Name, 1, true) or newText:find(lplr.DisplayName, 1, true) then
-				originalNames[element] = newText
+	local function forceNames()
+		for element, _ in pairs(originalNames) do
+			if element and element.Parent then
+				if element.Text ~= customName then
+					element.Text = customName
+				end
+			else
+				originalNames[element] = nil
 			end
-			element.Text = customName
-		end)
+		end
 	end
 
-	local function watchElement(element)
+	local function scanElement(element)
 		if not element:IsA("TextLabel") then return end
 		if element.Name ~= "PlayerName" and element.Name ~= "EntityName" and element.Name ~= "DisplayName" then return end
-		if propertyConnections[element] then return end
-
-		local original = element.Text
-		if not (original:find(lplr.Name, 1, true) or original:find(lplr.DisplayName, 1, true)) then return end
-
-		originalNames[element] = original
-		element.Text = customName
-		attachWatcher(element)
+		local text = originalNames[element] or element.Text
+		if text:find(lplr.Name, 1, true) or text:find(lplr.DisplayName, 1, true) then
+			if not originalNames[element] then
+				originalNames[element] = element.Text
+			end
+			element.Text = customName
+		end
 	end
 
 	local function processGui(gui)
 		for _, descendant in pairs(gui:GetDescendants()) do
-			watchElement(descendant)
-		end
-	end
-
-	local function refreshAll()
-		local snapshot = {}
-		for element, original in pairs(originalNames) do
-			table.insert(snapshot, {element = element, original = original})
-		end
-		for _, data in pairs(snapshot) do
-			local element = data.element
-			if element and element.Parent then
-				element.Text = customName
-				attachWatcher(element)
-			end
-		end
-	end
-
-	local function modifyNametag(character)
-		if not character then return end
-		local head = character:FindFirstChild("Head")
-		if not head then return end
-		local nametag = head:FindFirstChild("Nametag")
-		if not nametag then return end
-		local displayNameContainer = nametag:FindFirstChild("DisplayNameContainer")
-		if not displayNameContainer then return end
-		local displayName = displayNameContainer:FindFirstChild("DisplayName")
-		if not displayName or not displayName:IsA("TextLabel") then return end
-
-		if propertyConnections[displayName] then
-			displayName.Text = customName
-			attachWatcher(displayName)
-		else
-			watchElement(displayName)
+			scanElement(descendant)
 		end
 	end
 
 	local function restoreAll()
-		for element, conn in pairs(propertyConnections) do
-			conn:Disconnect()
-		end
-		table.clear(propertyConnections)
 		for element, original in pairs(originalNames) do
 			if element and element.Parent then
 				element.Text = original
@@ -2892,7 +2848,7 @@ run(function()
 				if existingTabList then
 					processGui(existingTabList)
 					StreamProof:Clean(existingTabList.DescendantAdded:Connect(function(descendant)
-						watchElement(descendant)
+						scanElement(descendant)
 					end))
 				end
 
@@ -2900,7 +2856,7 @@ run(function()
 				if existingKillFeed then
 					processGui(existingKillFeed)
 					StreamProof:Clean(existingKillFeed.DescendantAdded:Connect(function(descendant)
-						watchElement(descendant)
+						scanElement(descendant)
 					end))
 				end
 
@@ -2908,28 +2864,33 @@ run(function()
 					if gui.Name == "TabListScreenGui" or gui.Name == "KillFeedGui" then
 						processGui(gui)
 						StreamProof:Clean(gui.DescendantAdded:Connect(function(descendant)
-							watchElement(descendant)
+							scanElement(descendant)
 						end))
 					end
 				end))
 
-				if lplr.Character then
-					modifyNametag(lplr.Character)
-				end
-
-				StreamProof:Clean(lplr.CharacterAdded:Connect(function(character)
-					task.wait(0.5)
-					if StreamProof.Enabled then
-						modifyNametag(character)
-					end
-				end))
-
 				nametagConnection = runService.RenderStepped:Connect(function()
-					if StreamProof.Enabled and lplr.Character then
-						pcall(function()
-							modifyNametag(lplr.Character)
-						end)
-					end
+					if not StreamProof.Enabled then return end
+					pcall(function()
+						-- force all tracked elements every frame
+						forceNames()
+						-- scan nametag every frame in case it respawns
+						if lplr.Character then
+							local head = lplr.Character:FindFirstChild("Head")
+							if head then
+								local nametag = head:FindFirstChild("Nametag")
+								if nametag then
+									local dc = nametag:FindFirstChild("DisplayNameContainer")
+									if dc then
+										local dn = dc:FindFirstChild("DisplayName")
+										if dn and dn:IsA("TextLabel") then
+											scanElement(dn)
+										end
+									end
+								end
+							end
+						end
+					end)
 				end)
 
 			else
@@ -2949,9 +2910,6 @@ run(function()
 		Placeholder = 'Enter name...',
 		Function = function(value)
 			customName = (value ~= "" and value) or "Me"
-			if StreamProof.Enabled then
-				refreshAll()
-			end
 		end
 	})
 end)
