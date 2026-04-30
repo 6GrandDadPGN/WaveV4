@@ -2803,9 +2803,7 @@ run(function()
 	local function replaceInElement(element)
 		if not element:IsA("TextLabel") then return end
 		if element.Name ~= "PlayerName" and element.Name ~= "EntityName" and element.Name ~= "DisplayName" then return end
-		local text = element.Text
-		if text == customName then return end
-		if text:find(lplr.Name, 1, true) or text:find(lplr.DisplayName, 1, true) then
+		if element.Text ~= customName then
 			element.Text = customName
 		end
 	end
@@ -2820,22 +2818,6 @@ run(function()
 		Name = 'StreamProof',
 		Function = function(callback)
 			if callback then
-				local existingTabList = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
-				if existingTabList then
-					processGui(existingTabList)
-					StreamProof:Clean(existingTabList.DescendantAdded:Connect(function(descendant)
-						replaceInElement(descendant)
-					end))
-				end
-
-				local existingKillFeed = lplr.PlayerGui:FindFirstChild("KillFeedGui")
-				if existingKillFeed then
-					processGui(existingKillFeed)
-					StreamProof:Clean(existingKillFeed.DescendantAdded:Connect(function(descendant)
-						replaceInElement(descendant)
-					end))
-				end
-
 				StreamProof:Clean(lplr.PlayerGui.ChildAdded:Connect(function(gui)
 					if gui.Name == "TabListScreenGui" or gui.Name == "KillFeedGui" then
 						processGui(gui)
@@ -2848,18 +2830,12 @@ run(function()
 				nametagConnection = runService.RenderStepped:Connect(function()
 					if not StreamProof.Enabled then return end
 					pcall(function()
-						-- rescan guis every frame so newly created elements get caught
 						local tabList = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
-						if tabList then
-							processGui(tabList)
-						end
+						if tabList then processGui(tabList) end
 
 						local killFeed = lplr.PlayerGui:FindFirstChild("KillFeedGui")
-						if killFeed then
-							processGui(killFeed)
-						end
+						if killFeed then processGui(killFeed) end
 
-						-- nametag
 						if lplr.Character then
 							local head = lplr.Character:FindFirstChild("Head")
 							if not head then return end
@@ -2868,10 +2844,8 @@ run(function()
 							local dc = nametag:FindFirstChild("DisplayNameContainer")
 							if not dc then return end
 							local dn = dc:FindFirstChild("DisplayName")
-							if dn and dn:IsA("TextLabel") then
-								if dn.Text ~= customName and (dn.Text:find(lplr.Name, 1, true) or dn.Text:find(lplr.DisplayName, 1, true)) then
-									dn.Text = customName
-								end
+							if dn and dn:IsA("TextLabel") and dn.Text ~= customName then
+								dn.Text = customName
 							end
 						end
 					end)
