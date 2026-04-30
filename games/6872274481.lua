@@ -2799,17 +2799,19 @@ run(function()
 	local StreamProof
 	local originalNames = {}
 	local nametagConnection = nil
+	local propertyConnections = {}
 	local customName = "Me"
 	
 	local function modifyPlayerName(element)
-		if element:IsA("TextLabel") and (element.Name == "PlayerName" or element.Name == "EntityName" or element.Name == "DisplayName") then
-			local original = originalNames[element] or element.Text
-			if original:find(lplr.Name) or original:find(lplr.DisplayName) then
-				if not originalNames[element] then
-					originalNames[element] = element.Text
-				end
-				element.Text = customName
+		if not element:IsA("TextLabel") then return end
+		if element.Name ~= "PlayerName" and element.Name ~= "EntityName" and element.Name ~= "DisplayName" then return end
+		
+		local current = originalNames[element] or element.Text
+		if current:find(lplr.Name, 1, true) or current:find(lplr.DisplayName, 1, true) then
+			if not originalNames[element] then
+				originalNames[element] = element.Text
 			end
+			element.Text = customName
 		end
 	end
 	
@@ -2819,10 +2821,31 @@ run(function()
 			originalNames[element] = nil
 		end
 	end
+
+	local function watchElement(element)
+		if not element:IsA("TextLabel") then return end
+		if element.Name ~= "PlayerName" and element.Name ~= "EntityName" and element.Name ~= "DisplayName" then return end
+		if propertyConnections[element] then return end
+
+		modifyPlayerName(element)
+
+		propertyConnections[element] = element:GetPropertyChangedSignal("Text"):Connect(function()
+			if not StreamProof.Enabled then return end
+			local current = originalNames[element] or element.Text
+			if current:find(lplr.Name, 1, true) or current:find(lplr.DisplayName, 1, true) then
+				if not originalNames[element] then
+					originalNames[element] = element.Text
+				end
+				if element.Text ~= customName then
+					element.Text = customName
+				end
+			end
+		end)
+	end
 	
 	local function processGui(gui)
 		for _, descendant in gui:GetDescendants() do
-			modifyPlayerName(descendant)
+			watchElement(descendant)
 		end
 	end
 
@@ -2844,7 +2867,7 @@ run(function()
 		if not displayNameContainer then return end
 		local displayName = displayNameContainer:FindFirstChild("DisplayName")
 		if displayName and displayName:IsA("TextLabel") then
-			modifyPlayerName(displayName)
+			watchElement(displayName)
 		end
 	end
 	
@@ -2859,6 +2882,10 @@ run(function()
 		local displayName = displayNameContainer:FindFirstChild("DisplayName")
 		if displayName and displayName:IsA("TextLabel") then
 			restorePlayerName(displayName)
+			if propertyConnections[displayName] then
+				propertyConnections[displayName]:Disconnect()
+				propertyConnections[displayName] = nil
+			end
 		end
 	end
 	
@@ -2870,7 +2897,7 @@ run(function()
 				if existingTabList then
 					processGui(existingTabList)
 					StreamProof:Clean(existingTabList.DescendantAdded:Connect(function(descendant)
-						modifyPlayerName(descendant)
+						watchElement(descendant)
 					end))
 				end
 				
@@ -2878,20 +2905,15 @@ run(function()
 				if existingKillFeed then
 					processGui(existingKillFeed)
 					StreamProof:Clean(existingKillFeed.DescendantAdded:Connect(function(descendant)
-						modifyPlayerName(descendant)
+						watchElement(descendant)
 					end))
 				end
 				
 				StreamProof:Clean(lplr.PlayerGui.ChildAdded:Connect(function(gui)
-					if gui.Name == "TabListScreenGui" then
+					if gui.Name == "TabListScreenGui" or gui.Name == "KillFeedGui" then
 						processGui(gui)
 						StreamProof:Clean(gui.DescendantAdded:Connect(function(descendant)
-							modifyPlayerName(descendant)
-						end))
-					elseif gui.Name == "KillFeedGui" then
-						processGui(gui)
-						StreamProof:Clean(gui.DescendantAdded:Connect(function(descendant)
-							modifyPlayerName(descendant)
+							watchElement(descendant)
 						end))
 					end
 				end))
@@ -2920,6 +2942,11 @@ run(function()
 					nametagConnection:Disconnect()
 					nametagConnection = nil
 				end
+
+				for element, conn in propertyConnections do
+					conn:Disconnect()
+				end
+				table.clear(propertyConnections)
 				
 				local existingTabList = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
 				if existingTabList then
