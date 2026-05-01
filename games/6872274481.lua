@@ -2810,13 +2810,8 @@ run(function()
 
 	local function trackElement(element)
 		if not element then return end
-		local isTextLabel = element:IsA("TextLabel")
-		local isTextBox = element:IsA("TextBox")
-		if not isTextLabel and not isTextBox then return end
-
-		local validName = element.Name == "PlayerName" or element.Name == "EntityName" or element.Name == "PlayerUsername"
-		if not validName then return end
-
+		if not element:IsA("TextLabel") then return end
+		if element.Name ~= "PlayerName" and element.Name ~= "EntityName" then return end
 		if trackedElements[element] then
 			pcall(function() element.Text = getCustomName() end)
 			return
@@ -2836,6 +2831,15 @@ run(function()
 		pcall(function()
 			for _, desc in pairs(gui:GetDescendants()) do
 				trackElement(desc)
+				-- hide PlayerUsername TextBox
+				if desc:IsA("TextBox") and desc.Name == "PlayerUsername" then
+					pcall(function()
+						local t = desc.Text
+						if type(t) == "string" and (t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true)) then
+							desc.Visible = false
+						end
+					end)
+				end
 			end
 		end)
 	end
@@ -2851,6 +2855,14 @@ run(function()
 						StreamProof:Clean(gui.DescendantAdded:Connect(function(desc)
 							task.wait()
 							trackElement(desc)
+							if desc:IsA("TextBox") and desc.Name == "PlayerUsername" then
+								pcall(function()
+									local t = desc.Text
+									if type(t) == "string" and (t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true)) then
+										desc.Visible = false
+									end
+								end)
+							end
 						end))
 					end
 					if gui.Name == "KillFeedGui" then
@@ -2909,12 +2921,22 @@ run(function()
 					nametagConnection:Disconnect()
 					nametagConnection = nil
 				end
+				-- restore
 				for element, original in pairs(trackedElements) do
 					if element and element.Parent then
 						pcall(function() element.Text = original end)
 					end
 				end
 				table.clear(trackedElements)
+				-- restore PlayerUsername visibility
+				local tl = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
+				if tl then
+					for _, desc in pairs(tl:GetDescendants()) do
+						if desc:IsA("TextBox") and desc.Name == "PlayerUsername" then
+							pcall(function() desc.Visible = true end)
+						end
+					end
+				end
 			end
 		end,
 		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag (made by max)'
