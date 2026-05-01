@@ -300,30 +300,19 @@ run(function()
 		end)
 	end
 
-	local function scanWorkspace()
+	local function updateLobbyBoard()
 		pcall(function()
-			for _, desc in pairs(workspace:GetDescendants()) do
+			local statsBoard = workspace:FindFirstChild("Lobby")
+				and workspace.Lobby:FindFirstChild("Boards")
+				and workspace.Lobby.Boards:FindFirstChild("StatsBoard")
+			if not statsBoard then return end
+			for _, desc in pairs(statsBoard:GetDescendants()) do
 				if desc:IsA("TextLabel") then
 					pcall(function()
 						local t = desc.Text
 						if type(t) ~= "string" then return end
 						if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
-							if trackedElements[desc] then
-								desc.Text = getCustomName() .. "'s Stats"
-								return
-							end
-							trackedElements[desc] = t
-							desc.Text = getCustomName() .. "'s Stats"
-						end
-					end)
-				end
-				-- nametag DisplayName in workspace
-				if desc:IsA("TextLabel") and desc.Name == "DisplayName" then
-					pcall(function()
-						local t = desc.Text
-						if type(t) ~= "string" then return end
-						if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
-							desc.Text = getCustomName()
+							desc.Text = t:gsub(lplr.DisplayName, getCustomName()):gsub(lplr.Name, getCustomName())
 						end
 					end)
 				end
@@ -373,13 +362,7 @@ run(function()
 							if not element or not element.Parent then
 								trackedElements[element] = nil
 							else
-								pcall(function()
-									if element.Text:find("'s Stats") then
-										element.Text = customName .. "'s Stats"
-									else
-										element.Text = customName
-									end
-								end)
+								pcall(function() element.Text = customName end)
 							end
 						end
 
@@ -398,9 +381,26 @@ run(function()
 						local kf = lplr.PlayerGui:FindFirstChild("KillFeedGui")
 						if kf then processGui(kf) end
 
-						-- scan workspace every frame
-						scanWorkspace()
+						if lplr.Character then
+							local head = lplr.Character:FindFirstChild("Head")
+							if not head then return end
+							local nametag = head:FindFirstChild("Nametag")
+							if not nametag then return end
+							local dc = nametag:FindFirstChild("DisplayNameContainer")
+							if not dc then return end
+							local dn = dc:FindFirstChild("DisplayName")
+							if not dn or not dn:IsA("TextLabel") then return end
+							pcall(function() dn.Text = customName end)
+						end
 					end)
+				end)
+
+				-- update lobby board every second not every frame
+				task.spawn(function()
+					while NameTagSpoofer.Enabled do
+						updateLobbyBoard()
+						task.wait(1)
+					end
 				end)
 
 			else
@@ -435,7 +435,7 @@ run(function()
 				end
 			end
 		end,
-		Tooltip = '(Client-Sided) Hides your name in TabList, KillFeed, and Nametag'
+		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag'
 	})
 
 	CustomNameBox = NameTagSpoofer:CreateTextBox({
