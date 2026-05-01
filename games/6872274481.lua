@@ -2809,10 +2809,16 @@ run(function()
 	end
 
 	local function trackElement(element)
-		if not element or not element:IsA("TextLabel") then return end
-		if element.Name ~= "PlayerName" and element.Name ~= "EntityName" then return end
+		if not element then return end
+		local isTextLabel = element:IsA("TextLabel")
+		local isTextBox = element:IsA("TextBox")
+		if not isTextLabel and not isTextBox then return end
+
+		local validName = element.Name == "PlayerName" or element.Name == "EntityName" or element.Name == "PlayerUsername"
+		if not validName then return end
+
 		if trackedElements[element] then
-			element.Text = getCustomName()
+			pcall(function() element.Text = getCustomName() end)
 			return
 		end
 		pcall(function()
@@ -2854,13 +2860,6 @@ run(function()
 							trackElement(desc)
 						end))
 					end
-					-- catch any other new guis
-					task.wait(0.3)
-					processGui(gui)
-					StreamProof:Clean(gui.DescendantAdded:Connect(function(desc)
-						task.wait()
-						trackElement(desc)
-					end))
 				end))
 
 				local killFeed = lplr.PlayerGui:FindFirstChild("KillFeedGui")
@@ -2891,13 +2890,6 @@ run(function()
 						local kf = lplr.PlayerGui:FindFirstChild("KillFeedGui")
 						if kf then processGui(kf) end
 
-						-- scan ALL of PlayerGui to catch popup
-						for _, gui in pairs(lplr.PlayerGui:GetChildren()) do
-							if gui.Name ~= "TabListScreenGui" and gui.Name ~= "KillFeedGui" then
-								processGui(gui)
-							end
-						end
-
 						if lplr.Character then
 							local head = lplr.Character:FindFirstChild("Head")
 							if not head then return end
@@ -2925,7 +2917,7 @@ run(function()
 				table.clear(trackedElements)
 			end
 		end,
-		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag'
+		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag (made by max)'
 	})
 
 	CustomNameBox = StreamProof:CreateTextBox({
