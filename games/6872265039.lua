@@ -220,6 +220,8 @@ run(function()
 	local trackedElements = {}
 	local fakeLabels = {}
 	local lobbyLoopActive = false
+	local myName = lplr.Name
+	local myDisplayName = lplr.DisplayName
 
 	local function getCustomName()
 		if CustomNameBox and type(CustomNameBox.Value) == "string" and CustomNameBox.Value ~= "" then
@@ -301,23 +303,23 @@ run(function()
 		end)
 	end
 
-	local function updateLobbyBoard()
-		local lobby = game.Workspace:FindFirstChild("Lobby")
-		if not lobby then return end
-		local boards = lobby:FindFirstChild("Boards")
-		if not boards then return end
-		for _, desc in pairs(boards:GetDescendants()) do
-			if desc:IsA("TextLabel") and desc.Name == "PlayerUsername" then
-				pcall(function()
-					local t = desc.Text
-					if type(t) ~= "string" then return end
-					if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
-						desc.Text = '<b><font color="rgb(185, 188, 255)">@</font></b>' .. getCustomName()
-					end
-				end)
-			end
+local function updateLobbyBoard()
+	local lobby = game.Workspace:FindFirstChild("Lobby")
+	if not lobby then return end
+	local boards = lobby:FindFirstChild("Boards")
+	if not boards then return end
+	for _, desc in pairs(boards:GetDescendants()) do
+		if desc:IsA("TextLabel") and desc.Name == "PlayerUsername" then
+			pcall(function()
+				local t = desc.Text
+				if type(t) ~= "string" then return end
+				if t:find(myName, 1, true) or t:find(myDisplayName, 1, true) then
+					desc.Text = '<b><font color="rgb(185, 188, 255)">@</font></b>' .. getCustomName()
+				end
+			end)
 		end
 	end
+end
 
 	NameTagSpoofer = vape.Categories.Render:CreateModule({
 		Name = 'NameTagSpoofer',
