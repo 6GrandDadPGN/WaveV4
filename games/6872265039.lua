@@ -219,6 +219,7 @@ run(function()
 	local nametagConnection = nil
 	local trackedElements = {}
 	local fakeLabels = {}
+	local lobbyLoopActive = false
 
 	local function getCustomName()
 		if CustomNameBox and type(CustomNameBox.Value) == "string" and CustomNameBox.Value ~= "" then
@@ -391,14 +392,17 @@ run(function()
 					end)
 				end)
 
+				lobbyLoopActive = true
 				task.spawn(function()
-					while NameTagSpoofer.Enabled do
+					while lobbyLoopActive do
 						updateLobbyBoard()
 						task.wait(1)
 					end
 				end)
 
 			else
+				lobbyLoopActive = false
+
 				if nametagConnection then
 					nametagConnection:Disconnect()
 					nametagConnection = nil
