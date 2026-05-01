@@ -302,17 +302,13 @@ run(function()
 
 	local function updateLobbyBoard()
 		pcall(function()
-			local statsBoard = workspace:FindFirstChild("Lobby")
-				and workspace.Lobby:FindFirstChild("Boards")
-				and workspace.Lobby.Boards:FindFirstChild("StatsBoard")
-			if not statsBoard then return end
-			for _, desc in pairs(statsBoard:GetDescendants()) do
-				if desc:IsA("TextLabel") then
+			for _, desc in pairs(workspace.Lobby.Boards:GetDescendants()) do
+				if desc:IsA("TextLabel") and desc.Name == "PlayerUsername" then
 					pcall(function()
 						local t = desc.Text
 						if type(t) ~= "string" then return end
 						if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
-							desc.Text = t:gsub(lplr.DisplayName, getCustomName()):gsub(lplr.Name, getCustomName())
+							desc.Text = '<b><font color="rgb(185, 188, 255)">@</font></b>' .. getCustomName()
 						end
 					end)
 				end
@@ -395,7 +391,6 @@ run(function()
 					end)
 				end)
 
-				-- update lobby board every second not every frame
 				task.spawn(function()
 					while NameTagSpoofer.Enabled do
 						updateLobbyBoard()
