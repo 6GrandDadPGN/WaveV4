@@ -2800,6 +2800,7 @@ run(function()
 	local CustomNameBox
 	local nametagConnection = nil
 	local trackedElements = {}
+	local fakeLabels = {}
 
 	local function getCustomName()
 		if CustomNameBox and type(CustomNameBox.Value) == "string" and CustomNameBox.Value ~= "" then
@@ -2826,20 +2827,42 @@ run(function()
 		end)
 	end
 
+	local function handlePlayerUsername(element)
+		if not element or not element:IsA("TextBox") then return end
+		if element.Name ~= "PlayerUsername" then return end
+		if fakeLabels[element] then
+			fakeLabels[element].Text = "@" .. getCustomName()
+			return
+		end
+		pcall(function()
+			local t = element.Text
+			if type(t) ~= "string" then return end
+			if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
+				element.Visible = false
+				local fake = Instance.new("TextLabel")
+				fake.Name = "FakeUsername"
+				fake.Size = element.Size
+				fake.Position = element.Position
+				fake.BackgroundTransparency = 1
+				fake.TextColor3 = element.TextColor3
+				fake.TextScaled = element.TextScaled
+				fake.Font = element.Font
+				fake.TextXAlignment = element.TextXAlignment
+				fake.TextYAlignment = element.TextYAlignment
+				fake.Text = "@" .. getCustomName()
+				fake.ZIndex = element.ZIndex + 1
+				fake.Parent = element.Parent
+				fakeLabels[element] = fake
+			end
+		end)
+	end
+
 	local function processGui(gui)
 		if not gui then return end
 		pcall(function()
 			for _, desc in pairs(gui:GetDescendants()) do
 				trackElement(desc)
-				-- hide PlayerUsername TextBox
-				if desc:IsA("TextBox") and desc.Name == "PlayerUsername" then
-					pcall(function()
-						local t = desc.Text
-						if type(t) == "string" and (t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true)) then
-							desc.Visible = false
-						end
-					end)
-				end
+				handlePlayerUsername(desc)
 			end
 		end)
 	end
@@ -2855,14 +2878,7 @@ run(function()
 						StreamProof:Clean(gui.DescendantAdded:Connect(function(desc)
 							task.wait()
 							trackElement(desc)
-							if desc:IsA("TextBox") and desc.Name == "PlayerUsername" then
-								pcall(function()
-									local t = desc.Text
-									if type(t) == "string" and (t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true)) then
-										desc.Visible = false
-									end
-								end)
-							end
+							handlePlayerUsername(desc)
 						end))
 					end
 					if gui.Name == "KillFeedGui" then
@@ -2896,6 +2912,16 @@ run(function()
 							end
 						end
 
+						-- update fake labels
+						for element, fake in pairs(fakeLabels) do
+							if not element or not element.Parent then
+								if fake then fake:Destroy() end
+								fakeLabels[element] = nil
+							else
+								pcall(function() fake.Text = "@" .. customName end)
+							end
+						end
+
 						local tl = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
 						if tl then processGui(tl) end
 
@@ -2921,22 +2947,19 @@ run(function()
 					nametagConnection:Disconnect()
 					nametagConnection = nil
 				end
-				-- restore
 				for element, original in pairs(trackedElements) do
 					if element and element.Parent then
 						pcall(function() element.Text = original end)
 					end
 				end
 				table.clear(trackedElements)
-				-- restore PlayerUsername visibility
-				local tl = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
-				if tl then
-					for _, desc in pairs(tl:GetDescendants()) do
-						if desc:IsA("TextBox") and desc.Name == "PlayerUsername" then
-							pcall(function() desc.Visible = true end)
-						end
+				for element, fake in pairs(fakeLabels) do
+					if fake then pcall(function() fake:Destroy() end) end
+					if element and element.Parent then
+						pcall(function() element.Visible = true end)
 					end
 				end
+				table.clear(fakeLabels)
 			end
 		end,
 		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag (made by max)'
