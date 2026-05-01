@@ -300,6 +300,37 @@ run(function()
 		end)
 	end
 
+	local function scanWorkspace()
+		pcall(function()
+			for _, desc in pairs(workspace:GetDescendants()) do
+				if desc:IsA("TextLabel") then
+					pcall(function()
+						local t = desc.Text
+						if type(t) ~= "string" then return end
+						if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
+							if trackedElements[desc] then
+								desc.Text = getCustomName() .. "'s Stats"
+								return
+							end
+							trackedElements[desc] = t
+							desc.Text = getCustomName() .. "'s Stats"
+						end
+					end)
+				end
+				-- nametag DisplayName in workspace
+				if desc:IsA("TextLabel") and desc.Name == "DisplayName" then
+					pcall(function()
+						local t = desc.Text
+						if type(t) ~= "string" then return end
+						if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
+							desc.Text = getCustomName()
+						end
+					end)
+				end
+			end
+		end)
+	end
+
 	NameTagSpoofer = vape.Categories.Render:CreateModule({
 		Name = 'NameTagSpoofer',
 		Function = function(callback)
@@ -342,7 +373,13 @@ run(function()
 							if not element or not element.Parent then
 								trackedElements[element] = nil
 							else
-								pcall(function() element.Text = customName end)
+								pcall(function()
+									if element.Text:find("'s Stats") then
+										element.Text = customName .. "'s Stats"
+									else
+										element.Text = customName
+									end
+								end)
 							end
 						end
 
@@ -361,17 +398,8 @@ run(function()
 						local kf = lplr.PlayerGui:FindFirstChild("KillFeedGui")
 						if kf then processGui(kf) end
 
-						if lplr.Character then
-							local head = lplr.Character:FindFirstChild("Head")
-							if not head then return end
-							local nametag = head:FindFirstChild("Nametag")
-							if not nametag then return end
-							local dc = nametag:FindFirstChild("DisplayNameContainer")
-							if not dc then return end
-							local dn = dc:FindFirstChild("DisplayName")
-							if not dn or not dn:IsA("TextLabel") then return end
-							pcall(function() dn.Text = customName end)
-						end
+						-- scan workspace every frame
+						scanWorkspace()
 					end)
 				end)
 
@@ -407,7 +435,7 @@ run(function()
 				end
 			end
 		end,
-		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag'
+		Tooltip = '(Client-Sided) Hides your name in TabList, KillFeed, and Nametag'
 	})
 
 	CustomNameBox = NameTagSpoofer:CreateTextBox({
