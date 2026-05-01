@@ -1234,7 +1234,7 @@ run(function()
 end)
 
 run(function()
-	local NametagSpoof
+	local RankSpoofer
 	local SpoofRankDropdown
 
 	local lplr = game.Players.LocalPlayer
@@ -1320,7 +1320,7 @@ run(function()
 			local head = char:WaitForChild("Head", 5)
 			if not head then return end
 
-			while NametagSpoof.Enabled and char.Parent do
+			while RankSpoofer.Enabled and char.Parent do
 				task.wait(0.05)
 
 				local spoof = head:FindFirstChild("NSSpoofGui")
@@ -1350,8 +1350,8 @@ run(function()
 		end
 	end
 
-	NametagSpoof = vape.Categories.Render:CreateModule({
-		Name = "NametagSpoof",
+	RankSpoofer = vape.Categories.Render:CreateModule({
+		Name = "RankSpoofer",
 		Function = function(callback)
 			if callback then
 				if lplr.Character then
@@ -1364,7 +1364,7 @@ run(function()
 					end)
 				end
 
-				NametagSpoof:Clean(lplr.CharacterAdded:Connect(function(char)
+				RankSpoofer:Clean(lplr.CharacterAdded:Connect(function(char)
 					task.spawn(function()
 						local spoof = applySpoof(char)
 						if spoof then
@@ -1379,7 +1379,7 @@ run(function()
 		end
 	})
 
-	SpoofRankDropdown = NametagSpoof:CreateDropdown({
+	SpoofRankDropdown = RankSpoofer:CreateDropdown({
 		Name = "Rank",
 		List = {"Bronze","Silver","Gold","Platinum","Diamond","Emerald","Nightmare"},
 		Default = "Nightmare"
