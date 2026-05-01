@@ -2827,35 +2827,37 @@ run(function()
 		end)
 	end
 
-	local function handlePlayerUsername(element)
-		if not element or not element:IsA("TextBox") then return end
-		if element.Name ~= "PlayerUsername" then return end
-		if fakeLabels[element] then
-			fakeLabels[element].Text = "@" .. getCustomName()
-			return
-		end
-		pcall(function()
-			local t = element.Text
-			if type(t) ~= "string" then return end
-			if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
-				element.Visible = false
-				local fake = Instance.new("TextLabel")
-				fake.Name = "FakeUsername"
-				fake.Size = element.Size
-				fake.Position = element.Position
-				fake.BackgroundTransparency = 1
-				fake.TextColor3 = element.TextColor3
-				fake.TextScaled = element.TextScaled
-				fake.Font = element.Font
-				fake.TextXAlignment = element.TextXAlignment
-				fake.TextYAlignment = element.TextYAlignment
-				fake.Text = "@" .. getCustomName()
-				fake.ZIndex = element.ZIndex + 1
-				fake.Parent = element.Parent
-				fakeLabels[element] = fake
-			end
-		end)
+local function handlePlayerUsername(element)
+	if not element or not element:IsA("TextBox") then return end
+	if element.Name ~= "PlayerUsername" then return end
+	if fakeLabels[element] then
+		fakeLabels[element].Text = "@" .. getCustomName()
+		return
 	end
+	pcall(function()
+		local t = element.Text
+		if type(t) ~= "string" then return end
+		if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
+			element.Visible = false
+			element.TextTransparency = 1
+			element.TextStrokeTransparency = 1
+			local fake = Instance.new("TextLabel")
+			fake.Name = "FakeUsername"
+			fake.Size = element.Size
+			fake.Position = element.Position
+			fake.BackgroundTransparency = 1
+			fake.TextColor3 = element.TextColor3
+			fake.TextScaled = element.TextScaled
+			fake.Font = element.Font
+			fake.TextXAlignment = element.TextXAlignment
+			fake.TextYAlignment = element.TextYAlignment
+			fake.Text = "@" .. getCustomName()
+			fake.ZIndex = element.ZIndex + 1
+			fake.Parent = element.Parent
+			fakeLabels[element] = fake
+		end
+	end)
+end
 
 	local function processGui(gui)
 		if not gui then return end
