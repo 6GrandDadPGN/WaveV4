@@ -2797,15 +2797,22 @@ end)
 
 run(function()
 	local StreamProof
+	local CustomNameBox
 	local nametagConnection = nil
-	local customName = "Me"
 	local trackedElements = {}
+
+	local function getCustomName()
+		if CustomNameBox and type(CustomNameBox.Value) == "string" and CustomNameBox.Value ~= "" then
+			return CustomNameBox.Value
+		end
+		return "Me"
+	end
 
 	local function trackElement(element)
 		if not element or not element:IsA("TextLabel") then return end
 		if element.Name ~= "PlayerName" and element.Name ~= "EntityName" then return end
 		if trackedElements[element] then
-			element.Text = customName
+			element.Text = getCustomName()
 			return
 		end
 		pcall(function()
@@ -2813,8 +2820,8 @@ run(function()
 			if type(t) ~= "string" then return end
 			if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
 				trackedElements[element] = t
-				element.Text = customName
-				print("TRACKED:", element:GetFullName(), "original:", t)
+				element.Text = getCustomName()
+				print("TRACKED:", element:GetFullName())
 			end
 		end)
 	end
@@ -2862,13 +2869,13 @@ run(function()
 				nametagConnection = runService.RenderStepped:Connect(function()
 					if not StreamProof.Enabled then return end
 					pcall(function()
+						local customName = getCustomName()
+
 						for element, original in pairs(trackedElements) do
 							if not element or not element.Parent then
 								trackedElements[element] = nil
 							else
-								pcall(function()
-									element.Text = customName
-								end)
+								pcall(function() element.Text = customName end)
 							end
 						end
 
@@ -2908,13 +2915,15 @@ run(function()
 		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag (made by max)'
 	})
 
-	StreamProof:CreateTextBox({
+	CustomNameBox = StreamProof:CreateTextBox({
 		Name = 'Custom Name',
 		Default = 'Me',
 		Placeholder = 'Enter name...',
 		Function = function(value)
-			print("NAME CHANGED TO:", value, "tracked count:", (function() local c=0 for _ in pairs(trackedElements) do c=c+1 end return c end)())
-			customName = (value ~= "" and value) or "Me"
+			print("RAW VALUE:", value, type(value))
+			if type(value) == "string" then
+				print("NAME SET TO:", value)
+			end
 		end
 	})
 end)
