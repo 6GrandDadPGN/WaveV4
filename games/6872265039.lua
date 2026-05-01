@@ -303,7 +303,11 @@ run(function()
 
 	local function updateLobbyBoard()
 		pcall(function()
-			for _, desc in pairs(workspace.Lobby.Boards:GetDescendants()) do
+			local lobby = workspace:FindFirstChild("Lobby")
+			if not lobby then return end
+			local boards = lobby:FindFirstChild("Boards")
+			if not boards then return end
+			for _, desc in pairs(boards:GetDescendants()) do
 				if desc:IsA("TextLabel") and desc.Name == "PlayerUsername" then
 					pcall(function()
 						local t = desc.Text
