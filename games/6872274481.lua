@@ -2796,7 +2796,7 @@ run(function()
 end)
 
 run(function()
-	local StreamProof
+	local NameTagSpoofer
 	local CustomNameBox
 	local nametagConnection = nil
 	local trackedElements = {}
@@ -2882,15 +2882,15 @@ run(function()
 		end)
 	end
 
-	StreamProof = vape.Categories.Render:CreateModule({
-		Name = 'StreamProof',
+	NameTagSpoofer = vape.Categories.Render:CreateModule({
+		Name = 'NameTagSpoofer',
 		Function = function(callback)
 			if callback then
-				StreamProof:Clean(lplr.PlayerGui.ChildAdded:Connect(function(gui)
+				NameTagSpoofer:Clean(lplr.PlayerGui.ChildAdded:Connect(function(gui)
 					if gui.Name == "TabListScreenGui" then
 						task.wait(0.3)
 						processGui(gui)
-						StreamProof:Clean(gui.DescendantAdded:Connect(function(desc)
+						NameTagSpoofer:Clean(gui.DescendantAdded:Connect(function(desc)
 							task.wait()
 							trackElement(desc)
 							handlePlayerUsername(desc)
@@ -2899,7 +2899,7 @@ run(function()
 					end
 					if gui.Name == "KillFeedGui" then
 						processGui(gui)
-						StreamProof:Clean(gui.DescendantAdded:Connect(function(desc)
+						NameTagSpoofer:Clean(gui.DescendantAdded:Connect(function(desc)
 							task.wait()
 							trackElement(desc)
 						end))
@@ -2909,14 +2909,14 @@ run(function()
 				local killFeed = lplr.PlayerGui:FindFirstChild("KillFeedGui")
 				if killFeed then
 					processGui(killFeed)
-					StreamProof:Clean(killFeed.DescendantAdded:Connect(function(desc)
+					NameTagSpoofer:Clean(killFeed.DescendantAdded:Connect(function(desc)
 						task.wait()
 						trackElement(desc)
 					end))
 				end
 
 				nametagConnection = runService.RenderStepped:Connect(function()
-					if not StreamProof.Enabled then return end
+					if not NameTagSpoofer.Enabled then return end
 					pcall(function()
 						local customName = getCustomName()
 
@@ -2989,10 +2989,10 @@ run(function()
 				end
 			end
 		end,
-		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag (made by max)'
+		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag'
 	})
 
-	CustomNameBox = StreamProof:CreateTextBox({
+	CustomNameBox = NameTagSpoofer:CreateTextBox({
 		Name = 'Custom Name',
 		Default = 'Me',
 		Placeholder = 'Enter name...',
