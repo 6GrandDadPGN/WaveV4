@@ -2827,37 +2827,49 @@ run(function()
 		end)
 	end
 
-local function handlePlayerUsername(element)
-	if not element or not element:IsA("TextBox") then return end
-	if element.Name ~= "PlayerUsername" then return end
-	if fakeLabels[element] then
-		fakeLabels[element].Text = "@" .. getCustomName()
-		return
-	end
-	pcall(function()
-		local t = element.Text
-		if type(t) ~= "string" then return end
-		if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
-			element.Visible = false
-			element.TextTransparency = 1
-			element.TextStrokeTransparency = 1
-			local fake = Instance.new("TextLabel")
-			fake.Name = "FakeUsername"
-			fake.Size = element.Size
-			fake.Position = element.Position
-			fake.BackgroundTransparency = 1
-			fake.TextColor3 = element.TextColor3
-			fake.TextScaled = element.TextScaled
-			fake.Font = element.Font
-			fake.TextXAlignment = element.TextXAlignment
-			fake.TextYAlignment = element.TextYAlignment
-			fake.Text = "@" .. getCustomName()
-			fake.ZIndex = element.ZIndex + 1
-			fake.Parent = element.Parent
-			fakeLabels[element] = fake
+	local function handlePlayerUsername(element)
+		if not element or not element:IsA("TextBox") then return end
+		if element.Name ~= "PlayerUsername" then return end
+		if fakeLabels[element] then
+			fakeLabels[element].Text = "@" .. getCustomName()
+			return
 		end
-	end)
-end
+		pcall(function()
+			local t = element.Text
+			if type(t) ~= "string" then return end
+			if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
+				element.Visible = false
+				element.TextTransparency = 1
+				element.TextStrokeTransparency = 1
+				local fake = Instance.new("TextLabel")
+				fake.Name = "FakeUsername"
+				fake.Size = element.Size
+				fake.Position = element.Position
+				fake.BackgroundTransparency = 1
+				fake.TextColor3 = element.TextColor3
+				fake.TextScaled = element.TextScaled
+				fake.Font = element.Font
+				fake.TextXAlignment = element.TextXAlignment
+				fake.TextYAlignment = element.TextYAlignment
+				fake.Text = "@" .. getCustomName()
+				fake.ZIndex = element.ZIndex + 1
+				fake.Parent = element.Parent
+				fakeLabels[element] = fake
+			end
+		end)
+	end
+
+	local function hideAtLabel(element)
+		if not element then return end
+		if not element:IsA("TextLabel") then return end
+		if element.Name ~= "@" then return end
+		pcall(function()
+			local parent = element.Parent
+			if parent and parent.Parent and parent.Parent.Name == "PlayerDropdown" then
+				element.Visible = false
+			end
+		end)
+	end
 
 	local function processGui(gui)
 		if not gui then return end
@@ -2865,6 +2877,7 @@ end
 			for _, desc in pairs(gui:GetDescendants()) do
 				trackElement(desc)
 				handlePlayerUsername(desc)
+				hideAtLabel(desc)
 			end
 		end)
 	end
@@ -2881,6 +2894,7 @@ end
 							task.wait()
 							trackElement(desc)
 							handlePlayerUsername(desc)
+							hideAtLabel(desc)
 						end))
 					end
 					if gui.Name == "KillFeedGui" then
@@ -2914,7 +2928,6 @@ end
 							end
 						end
 
-						-- update fake labels
 						for element, fake in pairs(fakeLabels) do
 							if not element or not element.Parent then
 								if fake then fake:Destroy() end
@@ -2958,10 +2971,22 @@ end
 				for element, fake in pairs(fakeLabels) do
 					if fake then pcall(function() fake:Destroy() end) end
 					if element and element.Parent then
-						pcall(function() element.Visible = true end)
+						pcall(function()
+							element.Visible = true
+							element.TextTransparency = 0
+							element.TextStrokeTransparency = 0
+						end)
 					end
 				end
 				table.clear(fakeLabels)
+				local tl = lplr.PlayerGui:FindFirstChild("TabListScreenGui")
+				if tl then
+					for _, desc in pairs(tl:GetDescendants()) do
+						if desc:IsA("TextLabel") and desc.Name == "@" then
+							pcall(function() desc.Visible = true end)
+						end
+					end
+				end
 			end
 		end,
 		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag (made by max)'
