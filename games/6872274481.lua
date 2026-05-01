@@ -2821,7 +2821,6 @@ run(function()
 			if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
 				trackedElements[element] = t
 				element.Text = getCustomName()
-				print("TRACKED:", element:GetFullName())
 			end
 		end)
 	end
@@ -2855,6 +2854,13 @@ run(function()
 							trackElement(desc)
 						end))
 					end
+					-- catch any other new guis
+					task.wait(0.3)
+					processGui(gui)
+					StreamProof:Clean(gui.DescendantAdded:Connect(function(desc)
+						task.wait()
+						trackElement(desc)
+					end))
 				end))
 
 				local killFeed = lplr.PlayerGui:FindFirstChild("KillFeedGui")
@@ -2885,6 +2891,13 @@ run(function()
 						local kf = lplr.PlayerGui:FindFirstChild("KillFeedGui")
 						if kf then processGui(kf) end
 
+						-- scan ALL of PlayerGui to catch popup
+						for _, gui in pairs(lplr.PlayerGui:GetChildren()) do
+							if gui.Name ~= "TabListScreenGui" and gui.Name ~= "KillFeedGui" then
+								processGui(gui)
+							end
+						end
+
 						if lplr.Character then
 							local head = lplr.Character:FindFirstChild("Head")
 							if not head then return end
@@ -2912,7 +2925,7 @@ run(function()
 				table.clear(trackedElements)
 			end
 		end,
-		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag (made by max)'
+		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag'
 	})
 
 	CustomNameBox = StreamProof:CreateTextBox({
@@ -2920,10 +2933,6 @@ run(function()
 		Default = 'Me',
 		Placeholder = 'Enter name...',
 		Function = function(value)
-			print("RAW VALUE:", value, type(value))
-			if type(value) == "string" then
-				print("NAME SET TO:", value)
-			end
 		end
 	})
 end)
