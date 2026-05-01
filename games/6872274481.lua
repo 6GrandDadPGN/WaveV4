@@ -2989,7 +2989,7 @@ run(function()
 				end
 			end
 		end,
-		Tooltip = 'Hides your name in TabList, KillFeed, and Nametag'
+		Tooltip = '(Client-Sided) Hides your name in TabList, KillFeed, and Nametag'
 	})
 
 	CustomNameBox = NameTagSpoofer:CreateTextBox({
