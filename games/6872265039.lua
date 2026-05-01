@@ -254,7 +254,7 @@ run(function()
 				end
 			end
 		end,
-		Tooltip = 'Spoofs your nametag above your head'
+		Tooltip = '(Client-Sided) Spoofs your nametag above your head'
 	})
 
 	CustomNameBox = NameTagSpoofer:CreateTextBox({
