@@ -2865,7 +2865,7 @@ run(function()
 		if element.Name ~= "@" then return end
 		pcall(function()
 			local parent = element.Parent
-			if parent and parent.Parent and parent.Parent.Name == "PlayerDropdown" then
+			if parent and parent.Name == "PlayerUsername" then
 				element.Visible = false
 			end
 		end)
