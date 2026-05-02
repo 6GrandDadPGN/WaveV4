@@ -6853,7 +6853,7 @@ run(function()
 	})
 end)
 																								
-getgenv().Attacking = false
+local Attacking
 run(function() --> by max
 	local Killaura
 	local KitCheck
@@ -6893,16 +6893,17 @@ run(function() --> by max
 	local AnimationSpeed
 	local AnimationTween
 	local Limit
-	local LegitAura = {}
+	local LegitAura
 	local Particles, Boxes = {}, {}
 	local RangeVisualiser
 	local anims, AnimDelay, AnimTween, armC0 = vape.Libraries.auraanims, tick()
-	local AttackRemote = {FireServer = function() end}
+	local AttackRemote = {FireServer = function(self, ...) end}
 	task.spawn(function()
 		AttackRemote = bedwars.Client:Get(remotes.AttackEntity).instance
 	end)
 
 	local function getAttackData()
+		if not entitylib.isAlive then return false end
 		if Mouse.Enabled then
 			if not inputService:IsMouseButtonPressed(0) then return false end
 		end
@@ -6912,8 +6913,7 @@ run(function() --> by max
 		end
 
 		if KitCheck.Enabled then 
-			if not entitylib.isAlive then return false end
-			if lplr.Character:FindFirstChild('elk') then return false end
+			if bedwars.SwordController.disableSwingState then return false end
 		end
 
 		local sword = Limit.Enabled and store.hand or store.tools.sword
@@ -7015,11 +7015,9 @@ run(function() --> by max
 		end
 	end
 
-	local Upvalues = {}
-
 	Killaura = vape.Categories.Blatant:CreateModule({
 		Name = 'CatKillaura',
-		Tags = {'updated'},
+		Tags = {'reverted'},
 		Function = function(callback)
 			if callback then
 				local lastShot = tick()
@@ -7030,39 +7028,29 @@ run(function() --> by max
 							Controllers = {
 								ViewmodelController = {
 									isVisible = function()
-										return not getgenv().Attacking
+										return not Attacking
 									end,
 									playAnimation = function(...)
-										if not getgenv().Attacking then
+										if not Attacking then
 											bedwars.ViewmodelController:playAnimation(select(2, ...))
 										end
 									end
 								}
 							}
 						}
-						xpcall(function()
-							for _, Path in {bedwars.ScytheController.playLocalAnimation, bedwars.SwordController.playSwordEffect} do
-								local Index: number?
-								for i, v in debug.getupvalues(Path) do
-									if v and typeof(v) == "table" and v.Controllers then
-										Index = i
-										Upvalues[Path] = {Index = i, Value = v}
-										break
-									end
-								end
-
-								if Index and Upvalues[Path] then
-									debug.setupvalue(Path, Index, fake)
-								end
-							end
-						end, warn)
+						pcall(function()
+							debug.setupvalue(bedwars.SwordController.playSwordEffect, 7, fake)
+						end)
+						pcall(function()
+							debug.setupvalue(bedwars.ScytheController.playLocalAnimation, 3, fake)
+						end)
 					end
 
 					task.spawn(function()
 						local started = false
 
 						repeat
-							if getgenv().Attacking then
+							if Attacking then
 								if not armC0 then
 									armC0 = gameCamera.Viewmodel.RightHand.RightWrist.C0
 								end
@@ -7080,7 +7068,7 @@ run(function() --> by max
 									AnimTween:Play()
 									AnimTween.Completed:Wait()
 									first = false
-									if (not Killaura.Enabled) or (not getgenv().Attacking) then break end
+									if (not Killaura.Enabled) or (not Attacking) then break end
 								end
 							elseif started then
 								started = false
@@ -7097,7 +7085,7 @@ run(function() --> by max
 					end)
 				end
 
-				Killaura:Clean(runService.PreRender:Connect(function()
+				Killaura:Clean(runService.PostSimulation:Connect(function()
 					if entitylib.isAlive and RangeVisualiser then
 						RangeVisualiser.Parent = gameCamera
 						RangeVisualiser.Position = entitylib.character.RootPart.Position - Vector3.new(0, entitylib.character.Humanoid.HipHeight, 0)
@@ -7110,7 +7098,7 @@ run(function() --> by max
 
 				repeat
 					local attacked, sword, meta = {}, getAttackData()
-					getgenv().Attacking = false
+					Attacking = false
 					store.KillauraTarget = nil
 					if sword and store.matchState ~= 0 then
 						local plrs = entitylib.AllPosition({
@@ -7121,7 +7109,7 @@ run(function() --> by max
 							NPCs = Targets.NPCs.Enabled,
 							Limit = Mode.Value == 'Single' and 1 or MaxTargets.Value,
 							Sort = sortmethods[Sort.Value],
-							Priority = targetfuncs[Priority.Value]
+							Priority = targetmethods[Priority.Value]
 						})
 						if #plrs > 0 then
 							if not Limit.Enabled or canDebug then
@@ -7153,8 +7141,8 @@ run(function() --> by max
 								})
 								targetinfo.Targets[v] = tick() + 1
 
-								if not getgenv().Attacking then
-									getgenv().Attacking = true
+								if not Attacking then
+									Attacking = true
 									store.KillauraTarget = v
 									if not Swing.Enabled and AnimDelay < tick() and not LegitAura.Enabled then
 										AnimDelay = tick() + math.max(ChargeTime.Value, 0.11)
@@ -7276,7 +7264,7 @@ run(function() --> by max
 					for i, v in Boxes do
 						if BoxData[v] == nil and attacked[i] then
 							tweenService:Create(v, TweenInfo.new(BoxAttackSpeed.Value, Enum.EasingStyle[BoxAttackTween.Value]), {
-								Size = Vector3.new(5, 7, 5)
+								Size = Vector3.new(3, 5, 3)
 							}):Play()
 						elseif BoxData[v] and not attacked[i] then
 							tweenService:Create(v, TweenInfo.new(BoxAttackSpeedEnd.Value, Enum.EasingStyle[BoxAttackTween.Value]), {
@@ -7318,11 +7306,12 @@ run(function() --> by max
 					end)
 				end
 				pcall(function()
-					for i, v in Upvalues do
-						debug.setupvalue(i, v.Index, v.Value)
-					end
+					debug.setupvalue(bedwars.SwordController.playSwordEffect, 7, bedwars.Knit)
 				end)
-				getgenv().Attacking = false
+				pcall(function()
+					debug.setupvalue(bedwars.ScytheController.playLocalAnimation, 3, bedwars.Knit)
+				end)
+				Attacking = false
 				pcall(function()
 					RangeVisualiser.Parent = replicatedStorage
 				end)
@@ -7334,7 +7323,7 @@ run(function() --> by max
 				end
 			end
 		end,
-		Tooltip = 'Attack players around you\nwithout aiming at them (made by max).',
+		Tooltip = 'Attack players around you\nwithout aiming at them.',
 		ExtraText = function() return Mode.Value end
 	})
 	Targets = Killaura:CreateTargets({
@@ -7650,28 +7639,18 @@ run(function() --> by max
 		Function = function(call)
 			if call then
 				if canDebug then
-					if not pcall(function()
-						if vape.ThreadFix then
-							setthreadidentity(2)
-						end
-						RangeVisualiser = Instance.new('MeshPart')
-						RangeVisualiser.MeshId = 'rbxassetid://3726303797'
-						RangeVisualiser.Color = Color3.fromHSV(BoxSwingColor.Hue, BoxSwingColor.Sat, BoxSwingColor.Value)
-						RangeVisualiser.CanCollide = false
-						RangeVisualiser.Anchored = true
-						RangeVisualiser.Material = Enum.Material.Neon
-						RangeVisualiser.Size = Vector3.new(SwingRange.Value * 0.7, 0.01, SwingRange.Value * 0.7)
-						if Killaura.Enabled then
-							RangeVisualiser.Parent = gameCamera
-						end
-						if vape.ThreadFix then
-							setthreadidentity(8)
-						end
-					end) then
-						if RangeVisualiser then
-							RangeVisualiser:Destroy()
-							RangeVisualiser = nil
-						end
+					if setthreadidentity then
+						setthreadidentity(8)
+					end
+					RangeVisualiser = Instance.new('MeshPart')
+					RangeVisualiser.MeshId = 'rbxassetid://3726303797'
+					RangeVisualiser.Color = Color3.fromHSV(BoxSwingColor.Hue, BoxSwingColor.Sat, BoxSwingColor.Value)
+					RangeVisualiser.CanCollide = false
+					RangeVisualiser.Anchored = true
+					RangeVisualiser.Material = Enum.Material.Neon
+					RangeVisualiser.Size = Vector3.new(SwingRange.Value * 0.7, 0.01, SwingRange.Value * 0.7)
+					if Killaura.Enabled then
+						RangeVisualiser.Parent = gameCamera
 					end
 					bedwars.QueryUtil:setQueryIgnored(RangeVisualiser, true)
 				end
