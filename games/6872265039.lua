@@ -453,30 +453,22 @@ run(function()
 				end
 			end
 
-local playerList = game:GetService("CoreGui"):FindFirstChild("PlayerList")
-if playerList then
-    for _, desc in pairs(playerList:GetDescendants()) do
-        if desc:IsA("TextLabel") then
-            if desc.Name == "PlayerName" then
-                pcall(function()
-                    local t = desc.Text
-                    if type(t) ~= "string" then return end
-                    if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
-                        desc.Text = getCustomName()
-                    end
-                end)
-            elseif desc.Name == "DisplayName" then
-                pcall(function()
-                    local t = desc.Text
-                    if type(t) ~= "string" then return end
-                    if t:find(lplr.DisplayName, 1, true) then
-                        desc.Text = getCustomName()
-                    end
-                end)
-            end
-        end
-    end
-end
+			local playerList = game:GetService("CoreGui"):FindFirstChild("PlayerList")
+			if playerList then
+				for _, desc in pairs(playerList:GetDescendants()) do
+					if desc:IsA("TextLabel") and desc.Name == "PlayerName" then
+						pcall(function()
+							local t = desc.Text
+							if type(t) ~= "string" then return end
+							if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
+								desc.Text = getCustomName()
+							end
+						end)
+					end
+				end
+			end
+		end)
+	end
 
 	NameTagSpoofer = vape.Categories.Render:CreateModule({
 		Name = 'NameTagSpoofer',
