@@ -3027,7 +3027,7 @@ run(function()
 				end
 			end
 		end,
-		Tooltip = 'Spoofs your name in Nametag, TabList, KillFeed and Escape Menu'
+		Tooltip = '(Client-Sided) Spoofs your name in Nametag, TabList, KillFeed and Escape Menu'
 	})
 
 	CustomNameBox = NameTagSpoofer:CreateTextBox({
