@@ -2883,32 +2883,40 @@ run(function()
 	end
 
 	local function updateEscapeMenu()
-	pcall(function()
-		local robloxGui = game:GetService("CoreGui"):FindFirstChild("RobloxGui")
-		if not robloxGui then return end
-		for _, desc in pairs(robloxGui:GetDescendants()) do
-			if desc:IsA("TextLabel") then
-				if desc.Name == "Handle" then
-					pcall(function()
-						local t = desc.Text
-						if type(t) ~= "string" then return end
-						if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
-							desc.Text = "@" .. getCustomName()
-						end
-					end)
-				elseif desc.Name == "Name" then
-					pcall(function()
-						local t = desc.Text
-						if type(t) ~= "string" then return end
-						if t:find(lplr.DisplayName, 1, true) then
-							desc.Text = getCustomName()
-						end
-					end)
+		pcall(function()
+			local robloxGui = game:GetService("CoreGui"):FindFirstChild("RobloxGui")
+			if not robloxGui then return end
+			for _, desc in pairs(robloxGui:GetDescendants()) do
+				if desc:IsA("TextLabel") then
+					if desc.Name == "Handle" then
+						pcall(function()
+							local t = desc.Text
+							if type(t) ~= "string" then return end
+							if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
+								desc.Text = "@" .. getCustomName()
+							end
+						end)
+					elseif desc.Name == "Name" then
+						pcall(function()
+							local t = desc.Text
+							if type(t) ~= "string" then return end
+							if t:find(lplr.DisplayName, 1, true) then
+								desc.Text = getCustomName()
+							end
+						end)
+					elseif desc.Name == "HeaderText" then
+						pcall(function()
+							local t = desc.Text
+							if type(t) ~= "string" then return end
+							if t:find(lplr.Name, 1, true) or t:find(lplr.DisplayName, 1, true) then
+								desc.Text = t:gsub(lplr.Name, getCustomName()):gsub(lplr.DisplayName, getCustomName())
+							end
+						end)
+					end
 				end
 			end
-		end
-	end)
-end
+		end)
+	end
 
 	NameTagSpoofer = vape.Categories.Render:CreateModule({
 		Name = 'NameTagSpoofer',
