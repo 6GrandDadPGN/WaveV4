@@ -214,6 +214,125 @@ local QueueTypes
 end)
 
 run(function()
+	local KitRenamer
+	local KitNameBox
+	local KitDescBox
+	local KitTargetBox
+
+	local function getTarget()
+		if KitTargetBox and type(KitTargetBox.Value) == "string" and KitTargetBox.Value ~= "" then
+			return KitTargetBox.Value
+		end
+		return ""
+	end
+
+	local function getNewName()
+		if KitNameBox and type(KitNameBox.Value) == "string" and KitNameBox.Value ~= "" then
+			return KitNameBox.Value
+		end
+		return ""
+	end
+
+	local function getNewDesc()
+		if KitDescBox and type(KitDescBox.Value) == "string" and KitDescBox.Value ~= "" then
+			return KitDescBox.Value
+		end
+		return ""
+	end
+
+	local function processKitShop()
+		local target = getTarget()
+		if target == "" then return end
+
+		local me = game.Players.LocalPlayer
+		local kitShop = me.PlayerGui:FindFirstChild("KitShopApp")
+		if kitShop then
+			for _, desc in pairs(kitShop:GetDescendants()) do
+				if desc:IsA("TextLabel") and desc.Name == "5" then
+					pcall(function()
+						local t = desc.Text
+						if type(t) == "string" and t:find(target, 1, true) then
+							if getNewName() ~= "" then
+								desc.Text = t:gsub(target, getNewName())
+							end
+						end
+					end)
+				end
+			end
+		end
+
+		local kitDetails = me.PlayerGui:FindFirstChild("KitDetailsApp")
+		if kitDetails then
+			for _, desc in pairs(kitDetails:GetDescendants()) do
+				if desc:IsA("TextLabel") then
+					pcall(function()
+						local t = desc.Text
+						if type(t) ~= "string" then return end
+						if desc.Name == "1" and t:find(target, 1, true) and getNewName() ~= "" then
+							desc.Text = t:gsub(target, getNewName())
+						elseif desc.Name == "1" and getNewDesc() ~= "" and t:len() > 20 then
+							desc.Text = getNewDesc()
+						end
+					end)
+				end
+			end
+		end
+	end
+
+	KitRenamer = vape.Categories.Render:CreateModule({
+		Name = 'Kit Renamer',
+		Function = function(callback)
+			if callback then
+				local me = game.Players.LocalPlayer
+
+				me.PlayerGui.ChildAdded:Connect(function(gui)
+					if gui.Name == "KitShopApp" or gui.Name == "KitDetailsApp" then
+						task.wait(0.3)
+						processKitShop()
+						gui.DescendantAdded:Connect(function()
+							task.wait()
+							processKitShop()
+						end)
+					end
+				end)
+
+				local existing = me.PlayerGui:FindFirstChild("KitShopApp")
+				if existing then
+					processKitShop()
+					existing.DescendantAdded:Connect(function()
+						task.wait()
+						processKitShop()
+					end)
+				end
+
+			end
+		end,
+		Tooltip = 'Rename kit names and descriptions in the kit shop'
+	})
+
+	KitTargetBox = KitRenamer:CreateTextBox({
+		Name = 'Kit to Rename',
+		Default = '',
+		Placeholder = 'e.g. Caitlyn',
+		Function = function(value) end
+	})
+
+	KitNameBox = KitRenamer:CreateTextBox({
+		Name = 'New Kit Name',
+		Default = '',
+		Placeholder = 'e.g. KATlyn',
+		Function = function(value) end
+	})
+
+	KitDescBox = KitRenamer:CreateTextBox({
+		Name = 'New Description',
+		Default = '',
+		Placeholder = 'Enter custom description...',
+		Function = function(value) end
+	})
+end)
+
+run(function()
 	local NameTagSpoofer
 	local CustomNameBox
 	local nametagConnection = nil
