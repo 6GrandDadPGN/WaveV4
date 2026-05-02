@@ -2883,11 +2883,12 @@ run(function()
 	end
 
 	local function updateEscapeMenu()
-		pcall(function()
-			local robloxGui = game:GetService("CoreGui"):FindFirstChild("RobloxGui")
-			if not robloxGui then return end
-			for _, desc in pairs(robloxGui:GetDescendants()) do
-				if desc:IsA("TextLabel") and desc.Name == "Handle" then
+	pcall(function()
+		local robloxGui = game:GetService("CoreGui"):FindFirstChild("RobloxGui")
+		if not robloxGui then return end
+		for _, desc in pairs(robloxGui:GetDescendants()) do
+			if desc:IsA("TextLabel") then
+				if desc.Name == "Handle" then
 					pcall(function()
 						local t = desc.Text
 						if type(t) ~= "string" then return end
@@ -2895,10 +2896,19 @@ run(function()
 							desc.Text = "@" .. getCustomName()
 						end
 					end)
+				elseif desc.Name == "Name" then
+					pcall(function()
+						local t = desc.Text
+						if type(t) ~= "string" then return end
+						if t:find(lplr.DisplayName, 1, true) then
+							desc.Text = getCustomName()
+						end
+					end)
 				end
 			end
-		end)
-	end
+		end
+	end)
+end
 
 	NameTagSpoofer = vape.Categories.Render:CreateModule({
 		Name = 'NameTagSpoofer',
