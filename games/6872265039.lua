@@ -280,7 +280,7 @@ run(function()
 	end
 
 	KitRenamer = vape.Categories.Render:CreateModule({
-		Name = 'Kit Renamer',
+		Name = 'KitRenamer',
 		Function = function(callback)
 			if callback then
 				local me = game.Players.LocalPlayer
@@ -307,7 +307,7 @@ run(function()
 
 			end
 		end,
-		Tooltip = 'Rename kit names and descriptions in the kit shop'
+		Tooltip = 'Rename kit names and descriptions in kits'
 	})
 
 	KitTargetBox = KitRenamer:CreateTextBox({
@@ -320,7 +320,7 @@ run(function()
 	KitNameBox = KitRenamer:CreateTextBox({
 		Name = 'New Kit Name',
 		Default = '',
-		Placeholder = 'e.g. KATlyn',
+		Placeholder = 'e.g. Katlyn',
 		Function = function(value) end
 	})
 
