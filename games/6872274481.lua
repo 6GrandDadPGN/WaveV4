@@ -5494,6 +5494,7 @@ Targets = Killaura:CreateTargets({Players = true, NPCs = true})
         Tooltip = 'Stops Killaura ONLY when completely frozen',
         Default = false
     })
+end)
 
 run(function()
     local old
