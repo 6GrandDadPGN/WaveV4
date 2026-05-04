@@ -5207,23 +5207,13 @@ run(function()
         ExtraText = function() return Mode.Value end
     })
 
-    Targets = Killaura:CreateTargets({Players = true, NPCs = true})
+Targets = Killaura:CreateTargets({Players = true, NPCs = true})
 
     local methods = {'Damage', 'Distance'}
     for i in sortmethods do
         if not table.find(methods, i) then table.insert(methods, i) end
     end
 
-    Killaura:CreateTwoSlider({
-        Name = 'Continue Swinging',
-        Min = 0,
-        Max = 10,
-        Decimal = 5,
-        DefaultMin = 0,
-        DefaultMax = 1,
-        Suffix = function(val) return val <= 1 and 'sec' or 'secs' end,
-        Tooltip = 'Continues to swing your sword after losing target'
-    })
     SwingRange = Killaura:CreateSlider({
         Name = 'Swing range', Min = 1, Max = 40, Default = 22,
         Function = function(val)
@@ -5242,7 +5232,6 @@ run(function()
     })
     SyncHitTime = Killaura:CreateToggle({
         Name = 'Sync hit time',
-        Darker = true,
         Tooltip = 'Syncs your hitreg with the swing time'
     })
     AirChance = Killaura:CreateSlider({
@@ -5250,6 +5239,16 @@ run(function()
     })
     AngleSlider = Killaura:CreateSlider({Name = 'Max angle', Min = 1, Max = 360, Default = 360})
     UpdateRate = Killaura:CreateSlider({Name = 'Update rate', Min = 1, Max = 240, Default = 120, Suffix = 'hz'})
+    Killaura:CreateTwoSlider({
+        Name = 'Continue Swinging',
+        Min = 0,
+        Max = 10,
+        Decimal = 5,
+        DefaultMin = 0,
+        DefaultMax = 1,
+        Suffix = function(val) return val <= 1 and 'sec' or 'secs' end,
+        Tooltip = 'Continues to swing your sword after losing target'
+    })
     Mode = Killaura:CreateDropdown({
         Name = 'Attack Mode',
         List = {'Single', 'Multi', 'Switch'},
@@ -5278,7 +5277,7 @@ run(function()
     })
     CustomHitRegSlider = Killaura:CreateSlider({
         Name = 'Hits Per Second', Min = 1, Max = 36, Default = 30,
-        Tooltip = 'Maximum hits per second', Visible = false
+        Tooltip = 'Maximum hits per second', Darker = true, Visible = false
     })
     Attach = Killaura:CreateToggle({
         Name = 'Attach',
@@ -5495,13 +5494,6 @@ run(function()
         Tooltip = 'Stops Killaura ONLY when completely frozen',
         Default = false
     })
-
-    task.defer(function()
-        if AirChance and AirChance.Object then
-            AirChance.Object.Visible = true
-        end
-    end)
-end)
 
 run(function()
     local old
